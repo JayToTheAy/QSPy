@@ -5,16 +5,23 @@ build-backend = "hatchling.build"
 [project]
 name = "qspy"
 version = "0.0.1"
+dependencies = [
+  "adif_io",
+  "requests",
+  "xmltodict",
+]
+requires-python = ">=3.9"
 authors = [
   { name="Jacob Humble", email="contact@jacobhumble.com" },
 ]
 description = "Amateur radio website API wrappers"
 readme = "README.md"
-requires-python = ">=3.9"
+keywords = ["QRZ", "LOTW", "eQSL", "API", "amateur radio"]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
     "Operating System :: OS Independent",
+    "Development Status :: 2 - Pre-Alpha"
 ]
 
 [project.urls]
