@@ -3,7 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import requests
-from qspy.logbook import Logbook
+from qspylib.logbook import Logbook
 
 class ClubLogWrapper:
     """

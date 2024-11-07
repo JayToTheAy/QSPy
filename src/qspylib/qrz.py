@@ -5,7 +5,7 @@
 import requests
 import html
 import xmltodict
-from qspy.logbook import Logbook
+from qspylib.logbook import Logbook
 
 class QRZInvalidSession(Exception):
     def __init__(self, message="Got no session key back. This session is invalid."):

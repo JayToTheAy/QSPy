@@ -1,10 +1,9 @@
-# QSPy
-
-QSPy is a bundle of API wrappers for various amateur radio-related websites, including QRZ, LOTW, eQSL, and ClubLog.
+# QSPyLib
+QSPyLib is a bundle of API wrappers for various amateur radio-related websites, including QRZ, LOTW, eQSL, and ClubLog.
 
 It is currently in development and should be considered unstable version-to-version while the version number is still 0.x.x.
 
-Issues and pull requests are welcome, and should be made on this repository.
+Issues and pull requests are welcome, and should be made on the [GitHub repository](https://github.com/jaytotheay/qspy).
 
 ## What works right now?
 

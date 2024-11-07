@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-from qspy.logbook import Logbook
+from qspylib.logbook import Logbook
 import requests
 
 # functions that don't require authentication
@@ -98,7 +98,7 @@ def get_full_member_list(timeout: int = 15):
 def get_users_data(callsign: str, timeout: int = 15):
     """
     Returns a dict of data on a QRZ user, in the form of: GridSquare, AG, Last Upload
-    Note: Slow as balls. Would be faster with vectorization, but then we'd need dependencies.
+    Note: Slow. Would be faster with vectorization, but then we'd need dependencies.
     """
     dict_users: dict = get_full_member_list()
     return dict_users.get(callsign)

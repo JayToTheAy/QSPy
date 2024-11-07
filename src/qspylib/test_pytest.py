@@ -3,9 +3,9 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import pytest
-import qspy.eqsl as eqsl
-import qspy.lotw as lotw
-import qspy.qrz as qrz
+import qspylib.eqsl as eqsl
+import qspylib.lotw as lotw
+import qspylib.qrz as qrz
 
 ##############
 # lotw tests #

@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "qspy"
+name = "qspylib"
 version = "0.0.1"
 dependencies = [
   "adif_io",
@@ -14,7 +14,7 @@ requires-python = ">=3.9"
 authors = [
   { name="Jacob Humble", email="contact@jacobhumble.com" },
 ]
-description = "Amateur radio website API wrappers"
+description = "A set of amateur radio website API wrappers"
 readme = "README.md"
 keywords = ["QRZ", "LOTW", "eQSL", "API", "amateur radio"]
 classifiers = [

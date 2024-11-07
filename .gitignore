@@ -1,9 +1,3 @@
 /.pytest_cache
 /.vscode
-src/qspy/__pycache__/__init__.cpython-312.pyc
-src/qspy/__pycache__/clublog.cpython-312.pyc
-src/qspy/__pycache__/eqsl.cpython-312.pyc
-src/qspy/__pycache__/logbook.cpython-312.pyc
-src/qspy/__pycache__/lotw.cpython-312.pyc
-src/qspy/__pycache__/test_pytest.cpython-312-pytest-8.3.3.pyc
-src/qspy/__pycache__/qrz.cpython-312.pyc
+/src/qspylib/__pycache__
