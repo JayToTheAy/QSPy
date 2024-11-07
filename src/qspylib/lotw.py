@@ -4,6 +4,7 @@
 
 import requests
 from qspylib.logbook import Logbook
+from qspylib._version import __version__
 
 # exceptions
 
@@ -71,7 +72,7 @@ class LOTWSession:
         session = requests.Session()
         session.params = {'login': username,
                           'password': password }
-        session.headers = {'User-Agent': 'pyQSP/0.0.1'}
+        session.headers = {'User-Agent': 'pyQSP/' + __version__}
 
         self.session = session
 

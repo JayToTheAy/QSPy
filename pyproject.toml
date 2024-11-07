@@ -4,7 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "qspylib"
-version = "0.0.1"
+dynamic = ["version"]
+
 dependencies = [
   "adif_io",
   "requests",
@@ -27,3 +28,6 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/JayToTheAy/QSPy"
 Issues = "https://github.com/JayToTheAy/QSPy/issues"
+
+[tool.hatch.version]
+path = "src/qspylib/_version.py"

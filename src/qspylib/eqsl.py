@@ -4,6 +4,7 @@
 
 from qspylib.logbook import Logbook
 import requests
+from qspylib._version import __version__
 
 # functions that don't require authentication
 
@@ -29,7 +30,7 @@ def verify_eqsl(CallsignFrom: str, CallsignTo: str, QSOBand: str, QSOMode: str =
     }
 
     with requests.Session() as s:
-        r = s.get(url, params=params, headers={'user-agent': 'pyQSP/0.0.1'}, timeout=timeout)
+        r = s.get(url, params=params, headers={'user-agent': 'pyQSP/' + __version__}, timeout=timeout)
         if r.status_code == 200:
             raw_result = r.text
             if 'Result - QSO on file' in raw_result:
@@ -50,7 +51,7 @@ def get_ag_list(timeout: int = 15):
     url = "https://www.eqsl.cc/qslcard/DownloadedFiles/AGMemberList.txt"
 
     with requests.Session() as s:
-        r = s.get(url, headers={'user-agent': 'pyQSP/0.0.1'}, timeout=timeout)
+        r = s.get(url, headers={'user-agent': 'pyQSP/' + __version__}, timeout=timeout)
         if r.status_code == 200:
             result_list = list()
             result_list += r.text.split('\r\n')
@@ -66,7 +67,7 @@ def get_ag_list_dated(timeout: int = 15):
     url = "https://www.eqsl.cc/qslcard/DownloadedFiles/AGMemberListDated.txt"
 
     with requests.Session() as s:
-        r = s.get(url, headers={'user-agent': 'pyQSP/0.0.1'}, timeout=timeout)
+        r = s.get(url, headers={'user-agent': 'pyQSP/' + __version__}, timeout=timeout)
         if r.status_code == 200:
             result_list = r.text.split('\r\n')
             loc, header = result_list[1:-1], str(result_list[0])
@@ -123,7 +124,7 @@ class eQSLSession:
             'password': password,
             'QTHNickname': QTHNickname }.items() if v is not None}
 
-        session.headers = {'User-Agent': 'pyQSP/0.0.1'}
+        session.headers = {'User-Agent': 'pyQSP/' + __version__}
         self.session = session
     
     def set_timeout(self, timeout: int):

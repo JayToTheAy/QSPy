@@ -6,6 +6,7 @@ import requests
 import html
 import xmltodict
 from qspylib.logbook import Logbook
+from qspylib._version import __version__
 
 class QRZInvalidSession(Exception):
     def __init__(self, message="Got no session key back. This session is invalid."):
@@ -24,7 +25,7 @@ class QRZLogbookAPI:
         self.key = key
         self.base_url = "https://logbook.qrz.com/api"
         self.headers = {
-            'User-Agent': 'pyQSP/0.0.1',
+            'User-Agent': 'pyQSP/' + __version__,
             'Accept-Encoding': 'gzip, deflate',
             'Accept': '*/*',
             'Connection': 'keep-alive'
@@ -73,7 +74,7 @@ class QRZXMLInterface:
     def __init__(self, username:str=None, password:str=None):
         self.username = username,
         self.password = password,
-        self.agent = 'pyQSP/0.0.1'
+        self.agent = 'pyQSP/' + __version__
         self.session_key = None
         self.base_url = "https://xmldata.qrz.com/xml/1.34/"
         self.headers = {
