@@ -15,7 +15,7 @@ requires-python = ">=3.9"
 authors = [
   { name="Jacob Humble", email="contact@jacobhumble.com" },
 ]
-description = "A set of amateur radio website API wrappers"
+description = "A set of API wrappers for different amateur radio websites, including LotW, QRZ, eQSL, and ClubLog"
 readme = "README.md"
 keywords = ["QRZ", "LOTW", "eQSL", "API", "amateur radio"]
 classifiers = [
