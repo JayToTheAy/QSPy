@@ -1,6 +1,10 @@
 # QSPyLib
 ![Python Package Build Action Status](https://github.com/JayToTheAy/QSPy/actions/workflows/python-package.yml/badge.svg)
-[![Documentation Status](https://readthedocs.org/projects/qspylib/badge/?version=latest)](https://qspylib.readthedocs.io/en/latest/?badge=latest)
+![Documentation Status](https://readthedocs.org/projects/qspylib/badge/?version=latest)](https://qspylib.readthedocs.io/en/latest/?badge=latest)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/qspylib)
+![PyPI - Version](https://img.shields.io/pypi/v/qspylib)
+![PyPI - Wheel](https://img.shields.io/pypi/wheel/qspylib)
+![PyPI - License](https://img.shields.io/pypi/l/qspylib)
 
 QSPyLib is a bundle of API wrappers for various amateur radio-related websites, including QRZ, LOTW, eQSL, and ClubLog.
 
