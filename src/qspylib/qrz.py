@@ -1,27 +1,33 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
-
+"""Functions and classes related to querying the QRZ APIs.
+"""
 import requests
 import html
 import xmltodict
-from qspylib.logbook import Logbook
-from qspylib._version import __version__
+from .logbook import Logbook
+from ._version import __version__
 
 class QRZInvalidSession(Exception):
+    """Error for when session is invalid.
+    """
     def __init__(self, message="Got no session key back. This session is invalid."):
         self.message=message
         super().__init__(self, message)
 
 
 
-class QRZLogbookAPI:
-    """
-    API wrapper for a QRZ Logbook. At present, only handles fetching QSOs.
-    Fetching returns a Logbook object that must be assigned to something.
+class QRZLogbookClient:
+    """API wrapper for a QRZ Logbook. At present, only handles fetching QSOs.
     """
 
     def __init__(self, key: str):
+        """Initializes a QRZLogbookClient object.
+
+        Args:
+            key (str): API key for a QRZ logbook.
+        """
         self.key = key
         self.base_url = "https://logbook.qrz.com/api"
         self.headers = {
@@ -32,6 +38,11 @@ class QRZLogbookAPI:
         }
 
     def fetch_logbook(self):
+        """Fetches a logbook from QRZ corresponding to the given QRZLogbookClient.
+
+        Returns:
+            qspylib.logbook.Logbook: A logbook containing the user's QSOs.
+        """
         params = {
             'KEY': self.key,
             'ACTION': 'FETCH',
@@ -42,7 +53,7 @@ class QRZLogbookAPI:
         
         response = requests.get(self.base_url, params=params, headers=self.headers)
         if response.status_code == 200:
-            return QRZLogbookAPI.__stringify(self, response.text)
+            return QRZLogbookClient.__stringify(self, response.text)
         else:
             response.raise_for_status()
 
@@ -65,13 +76,18 @@ class QRZLogbookAPI:
         log_adi = "<EOH>" + qrz_output[start_of_log:end_of_log] #adif_io expects a header, so we're giving it an end of header
         return Logbook(self.key, log_adi)
     
-class QRZXMLInterface:
-    """
-    A wrapper for the QRZ XML interface.
+class QRZXMLClient:
+    """A wrapper for the QRZ XML interface.
     This functionality requires being logged in and maintaining a session.
     """
 
     def __init__(self, username:str=None, password:str=None):
+        """Creates a QRZXMLClient object.
+
+        Args:
+            username (str, optional): username for QRZ user account. Defaults to None.
+            password (str, optional): password for QRZ user account. Defaults to None.
+        """
         self.username = username,
         self.password = password,
         self.agent = 'pyQSP/' + __version__

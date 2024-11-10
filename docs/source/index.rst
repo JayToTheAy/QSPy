@@ -3,14 +3,21 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to qspylib's documentation!
-===================================
+Introduction
+============
+``qsyplib`` is a bundle of API wrappers for various amateur radio-related websites, including QRZ, LOTW, eQSL, and ClubLog.
+
+It is currently in development and should be considered unstable version-to-version while the version number is still 0.x.x.
+
+Issues and pull requests are welcome, and should be made on the GitHub repository.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
-
+   
+   modules
+   qspylib
+   examples
 
 Indices and tables
 ==================

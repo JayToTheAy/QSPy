@@ -1,25 +1,32 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
-
-from qspylib.logbook import Logbook
+"""Functions and classes related to querying the eQSL API.
+"""
+from .logbook import Logbook
 import requests
-from qspylib._version import __version__
+from ._version import __version__
 
 # functions that don't require authentication
 
 def verify_eqsl(CallsignFrom: str, CallsignTo: str, QSOBand: str, QSOMode: str = None, QSODate: str = None, timeout: int = 15):
-    """
-    Verify a QSL with eQSL. Returns a tuple containing a Boolean of whether the QSO was verified, and the result str with any extra information.
+    """Verify a QSL with eQSL.
 
-    Keyword arguments:
+    Args:
+        CallsignFrom (str): Callsign originating QSO (i.e. N5UP)
+        CallsignTo (str): Callsign receiving QSO (i.e. TE5T)
+        QSOBand (str): Band QSO took place on (i.e. 160m)
+        QSOMode (str, optional): Mode QSO took place with (i.e. SSB). Defaults to None.
+        QSODate (str, optional): Date QSO took place (i.e. 01/31/2000). Defaults to None.
+        timeout (int, optional): Seconds before connection times out. Defaults to 15.
 
-    CallsignFrom -- Callsign originating QSO (i.e. N5UP)
-    CallsignTo -- Callsign receiving QSO (i.e. TEST)
-    QSOBand -- Band QSO took place on (i.e. 160m)
-    QSOMode -- Mode QSO took place with (i.e. SSB)
-    QSODate -- Date QSO took place (i.e. 01/31/2000)
+    Raises:
+        Exception: Exception
+
+    Returns:
+        bool, str: bool of whether the QSO was verified and a str of extra information eQSL reports, such as Authenticity Guaranteed status
     """
+
     url = "https://www.eqsl.cc/qslcard/VerifyQSO.cfm"
     params = {
         'CallsignFrom': CallsignFrom,
@@ -42,11 +49,42 @@ def verify_eqsl(CallsignFrom: str, CallsignTo: str, QSOBand: str, QSOMode: str =
         else:
             r.raise_for_status()
 
-def retrieve_graphic():
+def retrieve_graphic(username: str, password: str, CallsignFrom: str, QSOYear: str, QSOMonth: str, QSODay: str, QSOHour: str, QSOMinute: str, QSOBand: str, QSOMode: str, timeout: int = 15):
+    """Retrieve the graphic image for a QSO from eQSL.
+
+    Note: 
+        Not yet implemented.
+
+    Args:
+        username (str): The callsign of the recipient of the eQSL
+        password (str): The password of the user's account
+        CallsignFrom (str): The callsign of the sender of the eQSL
+        QSOYear (str): YYYY OR YY format date of the QSO
+        QSOMonth (str): MM format
+        QSODay (str): DD format
+        QSOHour (str): HH format (24-hour time)
+        QSOMinute (str): MM format
+        QSOBand (str): 20m, 80M, 70cm, etc. (case insensitive)
+        QSOMode (str): Must match exactly and should be an ADIF-compatible mode
+        timeout (int, optional): time to connection timeout. Defaults to 15.
+
+    Todo:
+        Implement this function.
+
+    Raises:
+        NotImplementedError: Not yet implemented.
+    """
     raise NotImplementedError
 
 def get_ag_list(timeout: int = 15):
-    """Get a list of Authenticity Guaranteed members. Tuple contains a list of string callsigns, and a string header with the date the list was generated."""
+    """Get a list of Authenticity Guaranteed members. 
+
+    Args:
+        timeout (int, optional): Seconds before connection times out. Defaults to 15.
+
+    Returns:
+        tuple, str: tuple contains a list of string callsigns, and a str header with the date the list was generated
+    """
 
     url = "https://www.eqsl.cc/qslcard/DownloadedFiles/AGMemberList.txt"
 
@@ -60,9 +98,13 @@ def get_ag_list(timeout: int = 15):
             r.raise_for_status()
 
 def get_ag_list_dated(timeout: int = 15):
-    """
-    Get a list of Authenticity Guaranteed eQSL members with the date of their last upload to eQSL.
-    Returns a tuple. First element is a dict with key: callsign and value: date, and second is a header of when this list was generated.
+    """Get a list of Authenticity Guaranteed eQSL members with the date of their last upload to eQSL.
+
+    Args:
+        timeout (int, optional): Seconds before connection times out. Defaults to 15.
+
+    Returns:
+        tuple: First element is a dict with key: callsign and value: date, and second is a header of when this list was generated.
     """
     url = "https://www.eqsl.cc/qslcard/DownloadedFiles/AGMemberListDated.txt"
 
@@ -80,7 +122,15 @@ def get_ag_list_dated(timeout: int = 15):
             r.raise_for_status()
 
 def get_full_member_list(timeout: int = 15):
-    """Get a list of all members of QRZ. Returns a dict, where the key is the callsign and the value is a tuple of: GridSquare, AG, Last Upload"""
+    """Get a list of all members of QRZ.
+
+    Args:
+        timeout (int, optional): Seconds before connection times out. Defaults to 15.
+
+    Returns:
+        dict: key is the callsign and the value is a tuple of: GridSquare, AG, Last Upload
+    """
+    
 
     url = "https://www.eqsl.cc/DownloadedFiles/eQSLMemberList.csv"
 
@@ -97,22 +147,36 @@ def get_full_member_list(timeout: int = 15):
             r.raise_for_status()
 
 def get_users_data(callsign: str, timeout: int = 15):
-    """
-    Returns a dict of data on a QRZ user, in the form of: GridSquare, AG, Last Upload
-    Note: Slow. Would be faster with vectorization, but then we'd need dependencies.
+    """Get a specific user's data from the full member list.
+
+    Note:
+        This is incredibly slow. A better method probably involves doing some vectorization.
+
+    Args:
+        callsign (str): callsign to get data about
+        timeout (int, optional): Seconds before connection times out. Defaults to 15.
+
+    Returns:
+        tuple: contains: GridSquare, AG, Last Upload
     """
     dict_users: dict = get_full_member_list()
     return dict_users.get(callsign)
 
 
 # things that require authentication
-class eQSLSession:
-    """
-    API wrapper for eQSL. At present, only handles fetching inbox QSOs.
-    Fetching returns a Logbook object that must be assigned to something.
+class eQSLClient:
+    """API wrapper for eQSL.cc. This class holds a user's authentication to perform actions on their behalf.
     """
 
     def __init__(self, username: str, password: str, QTHNickname: str = None, timeout: int = 15):
+        """Create an eQSLClient object.
+
+        Args:
+            username (str): callsign to login with
+            password (str): password to login with
+            QTHNickname (str, optional): QTHNickname. Defaults to None.
+            timeout (int, optional): time to timeout for the entire Client. Defaults to 15.
+        """
         self.callsign = username,
         self.timeout = timeout
         self.base_url = "https://www.eqsl.cc/qslcard/"
@@ -128,13 +192,24 @@ class eQSLSession:
         self.session = session
     
     def set_timeout(self, timeout: int):
+        """Set timeout for the Client to a new value.
+
+        Args:
+            timeout (int): time to timeout in seconds.
+        """
         self.timeout = timeout
     
     # actual GETs
 
     def get_last_upload_date(self):
-        " Returns a string with the date of last upload for the active user. Date is formatted: DD-MMM-YYYY at HH:mm UTC"
+        """Gets last upload date for the logged in user.
 
+        Raises:
+            Exception: Exception
+
+        Returns:
+            str: date of last upload for the active user. Date is formatted: DD-MMM-YYYY at HH:mm UTC
+        """
         with self.session as s:
             r = s.get(self.base_url + 'DisplayLastUploadDate.cfm', timeout=self.timeout)
             if r.status_code == 200:
@@ -144,7 +219,24 @@ class eQSLSession:
                 else:
                     raise Exception(r.text)
 
-    def fetch_inbox(self, LimitDateLo=None, LimitDateHi=None, RcvdSince=None, ConfirmedOnly=None, UnconfirmedOnly=None, Archive=None, HamOnly=None):
+    def fetch_inbox(self, LimitDateLo:str=None, LimitDateHi:str=None, RcvdSince:str=None, ConfirmedOnly:str=None, UnconfirmedOnly:str=None, Archive:str=None, HamOnly:str=None):
+        """Fetches INCOMING QSOs, from the user's eQSL Inbox.
+
+        Args:
+            LimitDateLo (str, optional): Earliest QSO date to download (oddly, in MM/DD/YYYY format with escape code 2F for slashes), optionally append HH:MM otherwise the default is 00:00. Defaults to None.
+            LimitDateHi (str, optional): Latest QSO date to download (oddly, in MM/DD/YYYY format with escape code 2F), optionally append HH:MM otherwise the default is 23:59 to include the entire day. Defaults to None.
+            RcvdSince (str, optional): (YYYYMMDDHHMM) Everything that was entered into the database on or after this date/time (Valid range 01/01/1900 - 12/31/2078). Defaults to None.
+            ConfirmedOnly (str, optional): Set to any value to signify you only want to download Inbox items you HAVE confirmed. Defaults to None.
+            UnconfirmedOnly (str, optional): Set to any value to signify you only want to download Inbox items you have NOT confirmed. Defaults to None.
+            Archive (str, optional): 1 for Archived records ONLY; 0 for Inbox (non-archived) ONLY; omit this parameter to retrieve ALL records in Inbox and Archive. Defaults to None.
+            HamOnly (str, optional): anything, filters out all SWL contacts. Defaults to None.
+
+        Raises:
+            Exception: Exception
+
+        Returns:
+            qspylib.logbook.Logbook: A logbook containing the user's QSOs.
+        """
         params = {
             'LimitDateLo': LimitDateLo,
             'LimitDateHi': LimitDateHi,
@@ -176,7 +268,13 @@ class eQSLSession:
                 r.raise_for_status()
 
     def fetch_outbox(self):
-        # TO-DO: test
+        """Fetches OUTGOING QSOs, from the user's eQSL Outbox.
+
+        Raises:
+            Exception: Exception
+        Returns:
+            qspylib.logbook.Logbook: A logbook containing the user's QSOs.
+        """
         with self.session as s:
             r = s.get(self.base_url + "DownloadADIF.cfm", timeout=self.timeout)
             if r.status_code == 200:
