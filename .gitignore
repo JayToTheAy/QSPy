@@ -2,3 +2,4 @@
 /.vscode
 /src/qspylib/__pycache__
 /dist
+/docs/build
