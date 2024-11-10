@@ -1,3 +1,4 @@
 sphinx-rtd-theme
 adif_io
 xmltodict
+pytest
