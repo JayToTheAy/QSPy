@@ -1,7 +1,8 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
-
+"""A PyTest module for confirming functionality works.
+"""
 import pytest
 import qspylib.eqsl as eqsl
 import qspylib.lotw as lotw
@@ -17,12 +18,12 @@ def test_pull_a_call_from_last_upload():
 
 def test_bad_login_fetch():
     with pytest.raises(lotw.RetrievalFailure):
-        lotw_obj = lotw.LOTWSession('**notavalidcall**', '**notarealpassword**')
+        lotw_obj = lotw.LOTWClient('**notavalidcall**', '**notarealpassword**')
         lotw_obj.fetch_logbook()
 
 def test_bad_login_dxcc():
     with pytest.raises(lotw.RetrievalFailure):
-        lotw_obj = lotw.LOTWSession('**notavalidcall**', '**notarealpassword**')
+        lotw_obj = lotw.LOTWClient('**notavalidcall**', '**notarealpassword**')
         lotw_obj.get_dxcc_credit()
 
 ###############
