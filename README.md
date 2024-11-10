@@ -1,5 +1,6 @@
 # QSPyLib
 ![Python Package Build Action Status](https://github.com/JayToTheAy/QSPy/actions/workflows/python-package.yml/badge.svg)
+[![Documentation Status](https://readthedocs.org/projects/qspylib/badge/?version=latest)](https://qspylib.readthedocs.io/en/latest/?badge=latest)
 
 QSPyLib is a bundle of API wrappers for various amateur radio-related websites, including QRZ, LOTW, eQSL, and ClubLog.
 
@@ -18,12 +19,16 @@ As of v0.0.1:
 
 ## How do I use it?
 
-An example of pulling a Logbook from LOTW:
+Documentation of all functions and classes, including examples, is available at the ReadTheDocs listing for this project:
+
+http://qspylib.readthedocs.io/
+
+A quick example of pulling a Logbook from LOTW:
 
 ```py
 from qspylib import lotw
-LOTWAccount = lotw.LOTWSession("callsign", "password")
-logbook = LOTWAccount.fetch_logbook()
+LOTWAccount = lotw.LOTWClient("callsign", "password")
+logbook = LOTWClient.fetch_logbook()
 ```
 This will give you a `Logbook` object, which contains a list of QSO objects and a parsed, usable adif_io log. The adif_io log property contains all the ADIF info that LOTW outputs (and likewise for other logging sites); the built-in log property of a `Logbook` object contains only some limited information, like callsign, band, mode, date, time, and QSL status from the originating site (which is a little handy as a single-reference for if a QSO is a QSL, since different sites use different, extra ADIF fields to express being QSL'd on their platform.)
 
@@ -35,4 +40,4 @@ confirmed, raw_result = eqsl.verify_eqsl('N5UP', 'TEST', '160m', 'SSB', '01/01/2
 ```
 This will return a tuple; here, `confirmed` will be False, since this QSO is not verified on eQSL, and `raw_result` will contain any extra information eQSL provides, for instance, if it's Authenticity Guaranteed.
 
-The best way to find out the functions, methods and objects available is to code dive; an okay-amount-of-effort has been put in to documenting the code with doc strings. 
+Modules, functions, and classes are documented in-code via docstrings, and you can learn more by reading those docstrings; you can also read the [Read the Docs](http://qspylib.readthedocs.io/) listings for a visually pleasing guide on what the docstrings say.
