@@ -12,6 +12,24 @@ It is currently in development and should be considered unstable version-to-vers
 
 Issues and pull requests are welcome, and should be made on the [GitHub repository](https://github.com/jaytotheay/qspy).
 
+## How do I install it?
+
+The latest stable* version of QSPyLib is available on PyPI, and can be installed by just running
+
+```bash
+py -m pip install qspylib
+```
+
+This release should match what is on the GitHub repository under a corresponding tagged release.
+
+To build the most recent source code (which isn’t necessarily stable – see the build test status), you can download the source code from GitHub, navigate to the directory, and run:
+
+``py 
+py -m build
+``
+
+This will generate a .whl and tar.gz, which you can then install locally.
+
 ## What works right now?
 
 As of v0.0.1:
