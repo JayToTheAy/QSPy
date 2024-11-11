@@ -24,9 +24,9 @@ This release should match what is on the GitHub repository under a corresponding
 
 To build the most recent source code (which isn’t necessarily stable – see the build test status), you can download the source code from GitHub, navigate to the directory, and run:
 
-``py 
+```py 
 py -m build
-``
+```
 
 This will generate a .whl and tar.gz, which you can then install locally.
 
