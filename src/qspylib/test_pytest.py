@@ -3,10 +3,78 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """A PyTest module for confirming functionality works.
 """
+import adif_io
 import pytest
+import qspylib.logbook
 import qspylib.eqsl as eqsl
 import qspylib.lotw as lotw
 import qspylib.qrz as qrz
+
+#################
+# logbook tests #
+#################
+def test_equality_of_qso():
+    adif_qso = adif_io.QSO({'CALL': 'W1AW', 'BAND': '20m', 'MODE': 'SSB', 'QSO_DATE': '20220101', 'TIME_ON': '0000', 'QSL_RCVD': 'N'})
+    qso1 = qspylib.logbook.QSO('W1AW', '20m', 'SSB', '20220101', '0000', 'N')
+    qso2 = qspylib.logbook.qso_from_adi(adif_qso)
+    assert qso1 == qso2
+
+def test_inequality_of_qso():
+    adif_qso = adif_io.QSO({'CALL': 'W1AW/4', 'BAND': '20m', 'MODE': 'SSB', 'QSO_DATE': '20220101', 'TIME_ON': '0000', 'QSL_RCVD': 'N'})
+    qso1 = qspylib.logbook.QSO('W1AW', '20m', 'SSB', '20220101', '0000', 'N')
+    qso2 = qspylib.logbook.qso_from_adi(adif_qso)
+    assert qso1 != qso2
+
+def test_generating_a_logbook():
+    adif_string = "a header\
+<eoh>\
+\
+<CALL:4>CA7LLSIGN\
+<BAND:3>20M\
+<FREQ:8>14.20000\
+<MODE:3>FT8\
+<QSO_DATE:8>20240101\
+<TIME_ON:6>104500\
+<QSL_RCVD:1>Y\
+<QSLRDATE:8>20240102\
+<eor>"
+    log = qspylib.logbook.Logbook("TE5T", adif_string)
+    assert isinstance(log, qspylib.logbook.Logbook)
+
+def test_logbook_attributes_match():
+    adif_string = "a header\
+<eoh>\
+\
+<CALL:4>CA7LLSIGN\
+<BAND:3>20M\
+<FREQ:8>14.20000\
+<MODE:3>FT8\
+<QSO_DATE:8>20240101\
+<TIME_ON:6>104500\
+<QSL_RCVD:1>Y\
+<QSLRDATE:8>20240102\
+<eor>"
+    log = qspylib.logbook.Logbook("TE5T", adif_string)
+    assert log.log[0] == qspylib.logbook.qso_from_adi(log.adi[0])
+
+def test_adding_and_removing():
+    adif_string = "a header\
+<eoh>\
+\
+<CALL:4>CA7LLSIGN\
+<BAND:3>20M\
+<FREQ:8>14.20000\
+<MODE:3>FT8\
+<QSO_DATE:8>20240101\
+<TIME_ON:6>104500\
+<QSL_RCVD:1>Y\
+<QSLRDATE:8>20240102\
+<eor>"
+    log = qspylib.logbook.Logbook("TE5T", adif_string)
+    new_adif_qso = adif_io.QSO({'CALL': 'W1AW/5', 'BAND': '20m', 'MODE': 'SSB', 'QSO_DATE': '20220101', 'TIME_ON': '0000', 'QSL_RCVD': 'N'})
+    log.write_qso(new_adif_qso)
+    log.discard_qso(log.adi[0])
+    assert len(log.log) == 1 and len(log.adi) == 1 and log.adi[0]['CALL'] == 'W1AW/5' and log.log[0].their_call == 'W1AW/5'
 
 ##############
 # lotw tests #
@@ -69,4 +137,3 @@ def test_get_user_data():
 #def test_qrz_xml_with_invalid_key():
 #    log_obj = qrz.QRZLogbookAPI('aaaaaaaaaaaaa')
 #    log = log_obj.fetch_logbook()
-

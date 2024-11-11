@@ -1,9 +1,11 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
-"""Classes to provide the back-bone of qspylib.
+"""Classes to provide the backbone of qspylib's logbook functionality  .
 """
 import adif_io
+
+# classes
 
 class QSO:
     """A hambaseio QSO obj. Contains simple info on a QSO.
@@ -36,7 +38,7 @@ class QSO:
 
     def __str__(self):
         return f"CALL: {self.their_call} BAND: {self.band} MODE: {self.mode} DATE: {self.qso_date} TIME: {self.time_on} QSL: {self.qsl_rcvd}\n"
-        # to-do: make this return as an actual adif formattede string\
+        # to-do: make this return as an actual adif formatted string
     
     def __eq__(self, other):
         if isinstance(other, QSO):
@@ -70,7 +72,7 @@ class Logbook:
         self.log = list()
         for contact in self.adi:
             # whether this qsl has been confirmed; lotw & clublog use qsl_rcvd, eqsl uses eqsl_qsl_rcvd, qrz most simply gives a qsl date
-            self.log.append(self.logify_an_adif_qso(contact))
+            self.log.append(qso_from_adi(contact))
 
     def __str__(self):
         log_str = ""
@@ -86,29 +88,29 @@ class Logbook:
     
     # public methods
 
-    def write_qso(self, contact: QSO):
+    def write_qso(self, contact: adif_io.QSO):
         """Append a QSO to both the .log and .adi portions of the Logbook object.
 
         Args:
             contact (adif_io.QSO): QSO object to be added, structured as from an adif.io QSO object
         """
-        logified_qso = self.logify_an_adif_qso(contact)
+        logified_qso = qso_from_adi(contact)
         self.log.append(logified_qso)
         self.adi.append(contact)
 
-    def discard_qso(self, contact: QSO):
+    def discard_qso(self, contact: adif_io.QSO):
         """Removes the corresponding QSO from the .log portion of a Logbook, if one exists.
 
         Args:
-            contact (QSO): QSO to be deleted, if it exists, structured as from an adif.io QSO object
+            contact (adif_io.QSO): QSO to be deleted, if it exists, structured as from an adif.io QSO object
         """
-        logified_qso = self.logify_an_adif_qso(contact)
-        self.log.discard(logified_qso)
-        self.adi.discard(contact)
+        logified_qso = qso_from_adi(contact)
+        self.log.remove(logified_qso)
+        self.adi.remove(contact)
 
-    # private methods
+# functions of the module
 
-    def logify_an_adif_qso(self, contact: adif_io.QSO):
+def qso_from_adi(contact: adif_io.QSO):
         """Transforms an adif_io.QSO object into a qspylib.logbook.QSO object.
 
         Args:

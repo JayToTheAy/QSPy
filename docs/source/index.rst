@@ -5,12 +5,25 @@
 
 QSPyLib
 ============
-![Python Package Build Action Status](https://github.com/JayToTheAy/QSPy/actions/workflows/python-package.yml/badge.svg)
-![Documentation Status](https://readthedocs.org/projects/qspylib/badge/?version=latest)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/qspylib)
-![PyPI - Version](https://img.shields.io/pypi/v/qspylib)
-![PyPI - Wheel](https://img.shields.io/pypi/wheel/qspylib)
-![PyPI - License](https://img.shields.io/pypi/l/qspylib)
+
+.. image:: https://github.com/JayToTheAy/QSPy/actions/workflows/python-package.yml/badge.svg
+   :target: https://github.com/JayToTheAy/QSPy
+   :alt: Python Package Build Action Status
+.. image:: https://readthedocs.org/projects/qspylib/badge/?version=latest
+   :target: https://qspylib.readthedocs.io/en/
+   :alt: Documentation Status
+.. image:: https://img.shields.io/pypi/pyversions/qspylib
+   :target: https://pypi.org/project/qspylib/
+   :alt: PyPI - Python Verson
+.. image:: https://img.shields.io/pypi/v/qspylib
+   :target: https://pypi.org/project/qspylib/
+   :alt: PyPi - Version
+.. image:: https://img.shields.io/pypi/wheel/qspylib
+   :target: https://pypi.org/project/qspylib/
+   :alt: PyPI - Wheel
+.. image:: https://img.shields.io/pypi/l/qspylib
+   :target: https://pypi.org/project/qspylib/
+   :alt: PyPI - License
 
 
 ``qsyplib`` is a bundle of API wrappers for various amateur radio-related websites, including QRZ, LOTW, eQSL, and ClubLog.
