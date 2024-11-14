@@ -6,6 +6,7 @@
 import requests
 import html
 import xmltodict
+import urllib.parse
 from .logbook import Logbook
 from ._version import __version__
 
@@ -51,8 +52,11 @@ class QRZLogbookClient:
         # filter down to only used params
         params = {k: v for k, v in params.items() if v is not None}
         
-        response = requests.get(self.base_url, params=params, headers=self.headers)
+        response = requests.post(self.base_url, params=params, headers=self.headers)
         if response.status_code == 200:
+            parsed = urllib.parse.urlparse("https://a.us/?" + response.text)
+            response_dict = urllib.parse.parse_qs(html.unescape(parsed[4]), strict_parsing=True)
+            # at this point, we should have a dict of the response keys per the spec.
             return QRZLogbookClient.__stringify(self, response.text)
         else:
             response.raise_for_status()
@@ -84,6 +88,8 @@ class QRZXMLClient:
     def __init__(self, username:str=None, password:str=None):
         """Creates a QRZXMLClient object.
 
+        Todo: Change this to use a session key instead of username/password.
+
         Args:
             username (str, optional): username for QRZ user account. Defaults to None.
             password (str, optional): password for QRZ user account. Defaults to None.
@@ -101,6 +107,10 @@ class QRZXMLClient:
         }
 
         self.__initiate_session()
+    
+    def get_from_api(*args, **kwargs):
+        return
+        
 
     def __initiate_session(self):
         """Helper -- Grab us a session key so we're not throwing around passwords"""
