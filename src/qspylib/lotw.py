@@ -39,7 +39,7 @@ def get_last_upload(timeout: int = 15):
 
     with requests.Session() as s:
         response = s.get(url, timeout=timeout)
-        if response.status_code == 200:
+        if response.status_code == requests.codes.ok:
             return response.text
         else:
             response.raise_for_status()
@@ -67,7 +67,7 @@ def upload_logbook(file, timeout:int=120):
 
     with requests.Session() as s:
         response = s.post(upload_url, data, timeout=timeout)
-        if response.status_code == 200:
+        if response.status_code == requests.codes.ok:
             result = response.text
             result_start_idx = result.index('<!-- .UPL. ')
             result_end_idx = result[result_start_idx + 11:].index(' -->')
@@ -159,7 +159,7 @@ class LOTWClient:
             response = s.get(self.base_url + log_url, params=params)
             if '<eoh>' not in response.text:
                 raise RetrievalFailure
-            if response.status_code == 200:
+            if response.status_code == requests.codes.ok:
                 return Logbook(self.username, response.text)
             else:
                 response.raise_for_status()
@@ -190,7 +190,7 @@ class LOTWClient:
         
         with self.session as s:
             response = s.get(self.base_url + dxcc_url, params=params)
-            if response.status_code == 200:
+            if response.status_code == requests.codes.ok:
                 # lotw lies, and claims an <eoh> will be absent from bad outputs, but it's there, so we'll do something else.
                 if 'ARRL Logbook of the World DXCC QSL Card Report' not in response.text[:46]:
                     raise RetrievalFailure(response.text)

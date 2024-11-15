@@ -41,7 +41,7 @@ class ClubLogClient:
         data = {k: v for k, v in data.items() if v is not None}
 
         response = requests.post(self.base_url, data=data)
-        if response.status_code == 200:
+        if response.status_code == requests.codes.ok:
             return Logbook(self.callsign, response.text)
         else:
             response.raise_for_status()

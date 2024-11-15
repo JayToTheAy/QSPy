@@ -6,7 +6,7 @@
 import requests
 import html
 import xmltodict
-import urllib.parse
+from urllib.parse import urlparse, parse_qs
 from .logbook import Logbook
 from ._version import __version__
 
@@ -38,7 +38,7 @@ class QRZLogbookClient:
             'Connection': 'keep-alive'
         }
 
-    def fetch_logbook(self):
+    def fetch_logbook(self, option:str=None):
         """Fetches a logbook from QRZ corresponding to the given QRZLogbookClient.
 
         Returns:
@@ -47,17 +47,16 @@ class QRZLogbookClient:
         params = {
             'KEY': self.key,
             'ACTION': 'FETCH',
-            'OPTION': ''
+            'OPTION': option
         }
         # filter down to only used params
         params = {k: v for k, v in params.items() if v is not None}
         
         response = requests.post(self.base_url, params=params, headers=self.headers)
         if response.status_code == 200:
-            parsed = urllib.parse.urlparse("https://a.us/?" + response.text)
-            response_dict = urllib.parse.parse_qs(html.unescape(parsed[4]), strict_parsing=True)
+            response_dict = parse_qs(urlparse("ws://a.a/?" + html.unescape(response.text))[4], strict_parsing=True)
             # at this point, we should have a dict of the response keys per the spec.
-            return QRZLogbookClient.__stringify(self, response.text)
+            return QRZLogbookClient.__stringify(self, response_dict["ADIF"])
         else:
             response.raise_for_status()
 
@@ -75,9 +74,9 @@ class QRZLogbookClient:
     ### Helpers
 
     def __stringify(self, adi_log):
-        qrz_output = html.unescape(adi_log)
-        start_of_log, end_of_log = qrz_output.index('ADIF=') + 5, qrz_output.rindex('<eor>\n\n') + 4
-        log_adi = "<EOH>" + qrz_output[start_of_log:end_of_log] #adif_io expects a header, so we're giving it an end of header
+        #qrz_output = html.unescape(adi_log)
+        #start_of_log, end_of_log = qrz_output.index('ADIF=') + 5, qrz_output.rindex('<eor>\n\n') + 4
+        log_adi = "<EOH>" + adi_log #adif_io expects a header, so we're giving it an end of header
         return Logbook(self.key, log_adi)
     
 class QRZXMLClient:

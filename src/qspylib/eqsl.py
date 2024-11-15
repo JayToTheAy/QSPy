@@ -38,7 +38,7 @@ def verify_eqsl(CallsignFrom: str, CallsignTo: str, QSOBand: str, QSOMode: str =
 
     with requests.Session() as s:
         r = s.get(url, params=params, headers={'user-agent': 'pyQSP/' + __version__}, timeout=timeout)
-        if r.status_code == 200:
+        if r.status_code == requests.codes.ok:
             raw_result = r.text
             if 'Result - QSO on file' in raw_result:
                 return True, raw_result
@@ -90,7 +90,7 @@ def get_ag_list(timeout: int = 15):
 
     with requests.Session() as s:
         r = s.get(url, headers={'user-agent': 'pyQSP/' + __version__}, timeout=timeout)
-        if r.status_code == 200:
+        if r.status_code == requests.codes.ok:
             result_list = list()
             result_list += r.text.split('\r\n')
             return set(result_list[1:-1]), str(result_list[0])
@@ -110,7 +110,7 @@ def get_ag_list_dated(timeout: int = 15):
 
     with requests.Session() as s:
         r = s.get(url, headers={'user-agent': 'pyQSP/' + __version__}, timeout=timeout)
-        if r.status_code == 200:
+        if r.status_code == requests.codes.ok:
             result_list = r.text.split('\r\n')
             loc, header = result_list[1:-1], str(result_list[0])
             dict_calls = dict()
@@ -136,7 +136,7 @@ def get_full_member_list(timeout: int = 15):
 
     with requests.Session() as s:
         r = requests.get(url, timeout=timeout)
-        if r.status_code == 200:
+        if r.status_code == requests.codes.ok:
             result_list = r.text.split('\r\n')[1:-1]
             dict_calls = dict()
             for row in result_list:
@@ -212,7 +212,7 @@ class eQSLClient:
         """
         with self.session as s:
             r = s.get(self.base_url + 'DisplayLastUploadDate.cfm', timeout=self.timeout)
-            if r.status_code == 200:
+            if r.status_code == requests.codes.ok:
                 success_txt = 'Your last ADIF upload was'
                 if success_txt in r.text:
                     return r.text[r.text.index('(')+1:r.text.index(')')]
@@ -251,7 +251,7 @@ class eQSLClient:
 
         with self.session as s:
             r = s.get(self.base_url + "DownloadInBox.cfm", params=params, timeout=self.timeout)
-            if r.status_code == 200:
+            if r.status_code == requests.codes.ok:
                 adif_found_txt = 'Your ADIF log file has been built'
                 adif_status = r.text.index(adif_found_txt) if adif_found_txt in r.text else -1
                 if adif_status < 0:
@@ -260,7 +260,7 @@ class eQSLClient:
                 adif_link_end_idx = r.text.index('">.ADI file</A>')
                 adif_link = self.base_url + r.text[adif_link_start_idx:adif_link_end_idx]
                 adif_response = requests.get(adif_link)
-                if adif_response.status_code == 200:
+                if adif_response.status_code == requests.codes.ok:
                     return Logbook(self.callsign, adif_response.text)
                 else:
                     r.raise_for_status()
@@ -277,7 +277,7 @@ class eQSLClient:
         """
         with self.session as s:
             r = s.get(self.base_url + "DownloadADIF.cfm", timeout=self.timeout)
-            if r.status_code == 200:
+            if r.status_code == requests.codes.ok:
                 adif_found_txt = 'Your ADIF log file has been built'
                 adif_status = r.text.index(adif_found_txt) if adif_found_txt in r.text else -1
                 if adif_status < 0:
@@ -286,7 +286,7 @@ class eQSLClient:
                 adif_link_end_idx = r.text.index('">.ADI file</A>')
                 adif_link = self.base_url + r.text[adif_link_start_idx:adif_link_end_idx]
                 adif_response = requests.get(adif_link)
-                if adif_response.status_code == 200:
+                if adif_response.status_code == requests.codes.ok:
                     return Logbook(self.callsign, adif_response.text)
                 else:
                     r.raise_for_status()
