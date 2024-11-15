@@ -6,6 +6,7 @@
 import requests
 import html
 import xmltodict
+import adif_io
 from urllib.parse import urlparse, parse_qs
 from .logbook import Logbook
 from ._version import __version__
@@ -39,35 +40,109 @@ class QRZLogbookClient:
         }
 
     def fetch_logbook(self, option:str=None):
-        """Fetches a logbook from QRZ corresponding to the given QRZLogbookClient.
+        """_summary_
+
+        Note:
+            If too many records are fetched at once, parsing will fail to complete and not all response keys will be returned.
+            To prevent this, you should fetch the logbook in chunks, using the highest logid to start fetching the next chunk.
+            See fetch_logbook_paged, unless that hasn't been implemented yet -- then use this, and suffer.\
+            
+        Args:
+            option (str, optional): Optional parameters as specified by QRZ, like "MODE:SSB,CALL:W1AW". This should be a comma separated string. Defaults to None.
 
         Returns:
-            qspylib.logbook.Logbook: A logbook containing the user's QSOs.
+            qspylib.logbook.Logbook: A logbook containing the user’s QSOs.
         """
-        params = {
+        data = {
             'KEY': self.key,
             'ACTION': 'FETCH',
             'OPTION': option
         }
         # filter down to only used params
-        params = {k: v for k, v in params.items() if v is not None}
+        data = {k: v for k, v in data.items() if v is not None}
         
-        response = requests.post(self.base_url, params=params, headers=self.headers)
-        if response.status_code == 200:
+        response = requests.post(self.base_url, data=data, headers=self.headers)
+        if response.status_code == requests.codes.ok:
             response_dict = parse_qs(urlparse("ws://a.a/?" + html.unescape(response.text))[4], strict_parsing=True)
             # at this point, we should have a dict of the response keys per the spec.
             return QRZLogbookClient.__stringify(self, response_dict["ADIF"])
         else:
             response.raise_for_status()
 
-    def insert_record(self, adif, option=None):
+    #def fetch_logbook_paged(self, per_page:int=50, option:str=None):
+    #
+    #    data = {
+    #        'KEY': self.key,
+    #        'ACTION': 'FETCH',
+    #        'OPTION': 'MAX:' + str(per_page) + "," + option
+    #    }
+    #    # filter down to only used params
+    #    response = requests.post(self.base_url, data=data, headers=self.headers)
+    #    
+    #    raise NotImplementedError
+
+    def insert_record(self, QSO:adif_io.QSO, option:str=None):
+        """Inserts a single QSO into the logbook corresponding to the Client's API Key.
+
+        Args:
+            QSO (adif_io.QSO): _description_
+            option (str, optional): _description_. Defaults to None.
+
+        Raises:
+            NotImplementedError: _description_
+        """
+        data = {
+            'KEY': self.key,
+            'ACTION': 'INSERT',
+            'OPTION': option
+        }
         raise NotImplementedError
     
-    def delete_record(self, list_logids: list):
-        raise NotImplementedError
+    def delete_record(self, list_logids:list):
+        """Deletes log records from the logbook corresponding to the Client's API Key.
+
+        Note:
+            This is permenant, and cannot be undone.
+
+        Args:
+            list_logids (list): A list of logid values to delete from the logbook.
+
+        Returns:
+            dict: A dict containing the returned information from QRZ. This should include the RESULT, COUNT of records deleted, and LOGIDs not found, if any.
+        """
+        data = {
+            'KEY': self.key,
+            'ACTION': 'DELETE',
+            'LOGIDS': ','.join(list_logids)
+        }
+        response = requests.post(self.base_url, data=data, headers=self.headers)
+        if response.status_code == requests.codes.ok:
+            response_dict = parse_qs(urlparse("ws://a.a/?" + html.unescape(response.text))[4], strict_parsing=True)
+            return response_dict
+        else:
+            response.raise_for_status()
     
-    def check_status(self, list_logids: list):
-        raise NotImplementedError
+    def check_status(self, list_logids:list=None):
+        """Gets the status of a logbook based on the API Key supplied to the Client. This status can include information about the logbook like the owner, logbook name, DXCC count, confirmed QSOs, start and end date, etc.
+
+        Args:
+            list_logids (list, optional): A list of LOGIDs. Defaults to None.
+
+        Returns:        
+            dict: A dict containing the returned status information from QRZ. Keys correspond to the name given to the field by QRZ's API, e.g. DXCC count is 'DXCC_COUNT', confirmed is 'CONFIRMED', etc.
+        """
+        data = {
+            'KEY': self.key,
+            'ACTION': 'STATUS',
+            'LOGIDS': ','.join(list_logids)
+        }
+        
+        response = requests.post(self.base_url, data=data, headers=self.headers)
+        if response.status_code == requests.codes.ok:
+            response_dict = parse_qs(urlparse("ws://a.a/?" + html.unescape(response.text))[4], strict_parsing=True)
+            return response_dict
+        else:
+            response.raise_for_status()
     
 
     
