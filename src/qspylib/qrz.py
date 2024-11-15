@@ -21,7 +21,7 @@ class QRZInvalidSession(Exception):
 
 
 class QRZLogbookClient:
-    """API wrapper for a QRZ Logbook. At present, only handles fetching QSOs.
+    """API wrapper for accessing QRZ Logbook data.
     """
 
     def __init__(self, key: str):
@@ -40,12 +40,12 @@ class QRZLogbookClient:
         }
 
     def fetch_logbook(self, option:str=None):
-        """_summary_
+        """Fetches the logbook corresponding to the Client's API Key.
 
         Note:
             If too many records are fetched at once, parsing will fail to complete and not all response keys will be returned.
             To prevent this, you should fetch the logbook in chunks, using the highest logid to start fetching the next chunk.
-            See fetch_logbook_paged, unless that hasn't been implemented yet -- then use this, and suffer.\
+            See fetch_logbook_paged, unless that hasn't been implemented yet -- then use this, and suffer.
             
         Args:
             option (str, optional): Optional parameters as specified by QRZ, like "MODE:SSB,CALL:W1AW". This should be a comma separated string. Defaults to None.
@@ -181,10 +181,6 @@ class QRZXMLClient:
         }
 
         self.__initiate_session()
-    
-    def get_from_api(*args, **kwargs):
-        return
-        
 
     def __initiate_session(self):
         """Helper -- Grab us a session key so we're not throwing around passwords"""
@@ -208,5 +204,31 @@ class QRZXMLClient:
         response = requests.get(self.base_url, params=params, headers=self.headers)
         if not xmltodict.parse(response.text)["QRZDatabase"]["Session"].get("Key"):
             raise QRZInvalidSession()
+        
+    
+    def lookup_callsign(self, callsign:str):
+        return self.__lookup_callsign(callsign, 0)
+    
+    def __lookup_callsign(self, callsign:str, num_retries:int):
+        data = {
+            's': self.session_key,
+            'callsign': callsign
+        }
+        if sessiontimeout:
+            if num_retries < 3:
+                self.__initiate_session()
+                return self.__lookup_callsign(self, callsign, num_retries + 1)
 
+    def lookup_dxcc(self, dxcc:str):                                
+        return self.__lookup_dxcc(dxcc, 0)
+    
+    def __lookup_dxcc(self, dxcc:str, num_retries:int):
+        data = {
+            's': self.session_key,
+            'dxcc': dxcc
+        }
 
+        if sessiontimeout:
+            if num_retries < 1:
+                self.__initiate_session()
+                return self.__lookup_dxcc(self, dxcc, num_retries + 1)
