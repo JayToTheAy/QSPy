@@ -3,23 +3,36 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """Functions and classes related to querying the QRZ APIs.
 """
+#region Imports
 import requests
 import html
 import xmltodict
 import adif_io
 from urllib.parse import urlparse, parse_qs
+
+# our homebrew dependencies
 from .logbook import Logbook
 from ._version import __version__
 
+# dependencies needed for type hints, not actually strictly needed if you remove them
+from collections import OrderedDict
+from typing import Any
+
+# constants
+MAX_NUM_RETRIES = 1
+
+#endregion
+
+#region Exceptions
 class QRZInvalidSession(Exception):
     """Error for when session is invalid.
     """
     def __init__(self, message="Got no session key back. This session is invalid."):
         self.message=message
         super().__init__(self, message)
+#endregion
 
-
-
+#region Client Classes
 class QRZLogbookClient:
     """API wrapper for accessing QRZ Logbook data.
     """
@@ -39,7 +52,7 @@ class QRZLogbookClient:
             'Connection': 'keep-alive'
         }
 
-    def fetch_logbook(self, option:str=None):
+    def fetch_logbook(self, option:str=None) -> Logbook:
         """Fetches the logbook corresponding to the Client's API Key.
 
         Note:
@@ -98,7 +111,7 @@ class QRZLogbookClient:
         }
         raise NotImplementedError
     
-    def delete_record(self, list_logids:list):
+    def delete_record(self, list_logids:list) -> dict[str, list[str]]:
         """Deletes log records from the logbook corresponding to the Client's API Key.
 
         Note:
@@ -108,7 +121,7 @@ class QRZLogbookClient:
             list_logids (list): A list of logid values to delete from the logbook.
 
         Returns:
-            dict: A dict containing the returned information from QRZ. This should include the RESULT, COUNT of records deleted, and LOGIDs not found, if any.
+            dict[str, list[str]]: A dict containing the returned information from QRZ. This should include the RESULT, COUNT of records deleted, and LOGIDs not found, if any.
         """
         data = {
             'KEY': self.key,
@@ -122,14 +135,14 @@ class QRZLogbookClient:
         else:
             response.raise_for_status()
     
-    def check_status(self, list_logids:list=None):
+    def check_status(self, list_logids:list=None) -> dict[str, list[str]]:
         """Gets the status of a logbook based on the API Key supplied to the Client. This status can include information about the logbook like the owner, logbook name, DXCC count, confirmed QSOs, start and end date, etc.
 
         Args:
             list_logids (list, optional): A list of LOGIDs. Defaults to None.
 
         Returns:        
-            dict: A dict containing the returned status information from QRZ. Keys correspond to the name given to the field by QRZ's API, e.g. DXCC count is 'DXCC_COUNT', confirmed is 'CONFIRMED', etc.
+            dict[str, list[str]]: A dict containing the returned status information from QRZ. Keys correspond to the name given to the field by QRZ's API, e.g. DXCC count is 'DXCC_COUNT', confirmed is 'CONFIRMED', etc.
         """
         data = {
             'KEY': self.key,
@@ -148,7 +161,7 @@ class QRZLogbookClient:
     
     ### Helpers
 
-    def __stringify(self, adi_log):
+    def __stringify(self, adi_log) -> Logbook:
         #qrz_output = html.unescape(adi_log)
         #start_of_log, end_of_log = qrz_output.index('ADIF=') + 5, qrz_output.rindex('<eor>\n\n') + 4
         log_adi = "<EOH>" + adi_log #adif_io expects a header, so we're giving it an end of header
@@ -195,7 +208,7 @@ class QRZXMLClient:
             raise QRZInvalidSession()
         else:
             self.session_key = key
-
+    
     def __verify_session(self):
         """ Helper -- Verify our session key is still valid."""
         params = {'agent': self.agent,
@@ -206,29 +219,76 @@ class QRZXMLClient:
             raise QRZInvalidSession()
         
     
-    def lookup_callsign(self, callsign:str):
+    def lookup_callsign(self, callsign:str) -> OrderedDict[str, Any]:
         return self.__lookup_callsign(callsign, 0)
     
-    def __lookup_callsign(self, callsign:str, num_retries:int):
-        data = {
+    def __lookup_callsign(self, callsign:str, num_retries:int) -> OrderedDict[str, Any]:
+        """_summary_
+
+        Args:
+            callsign (str): _description_
+            num_retries (int): _description_
+
+        Raises:
+            QRZInvalidSession: _description_
+
+        Returns:
+            OrderedDict[str, Any]: _description_
+        """
+        params = {
             's': self.session_key,
             'callsign': callsign
         }
-        if sessiontimeout:
-            if num_retries < 3:
+        response = requests.get(self.base_url, params=params, headers=self.headers)
+        parsed_response = xmltodict.parse(response.text)
+        if not parsed_response.get("Key"):
+            if num_retries < MAX_NUM_RETRIES:
                 self.__initiate_session()
                 return self.__lookup_callsign(self, callsign, num_retries + 1)
+            else:
+                raise QRZInvalidSession(**{'message':parsed_response['ERROR']} if parsed_response.get('ERROR') else {})
+        else:
+            return parsed_response
 
-    def lookup_dxcc(self, dxcc:str):                                
+    def lookup_dxcc(self, dxcc:str) -> OrderedDict[str, Any]:
+        """Looks up a DXCC by prefix or DXCC number.
+
+        Args:
+            dxcc (str): DXCC or prefix to lookup
+
+        Raises:
+            QRZInvalidSession: Error specifying why the session is invalid and the lookup failed.
+
+        Returns:
+            OrderedDict[str, Any]: Data on the DXCC looked up, looked up by key; this data includes DXCC, CC, name, continent, ituzone, cqzone, timezone, lat, lon, & notes
+        """
         return self.__lookup_dxcc(dxcc, 0)
     
-    def __lookup_dxcc(self, dxcc:str, num_retries:int):
-        data = {
+    def __lookup_dxcc(self, dxcc:str, num_retries:int) -> OrderedDict[str, Any]:
+        """Lookup helper for lookup_dxcc, allows for retry, presumably a prior fail is from the session expiring
+
+        Args:
+            dxcc (str): DXCC to lookup
+            num_retries (int): number of attempts already made to lookup
+
+        Raises:
+            QRZInvalidSession: Error specifying why the session is invalid and the lookup failed.
+
+        Returns:
+            OrderedDict[str, Any]: Data on the DXCC looked up, looked up by key; this data includes DXCC, CC, name, continent, ituzone, cqzone, timezone, lat, lon, & notes
+        """
+        params = {
             's': self.session_key,
             'dxcc': dxcc
         }
-
-        if sessiontimeout:
-            if num_retries < 1:
+        response = requests.get(self.base_url, params=params, headers=self.headers)
+        parsed_response = xmltodict.parse(response.text)
+        if not parsed_response.get("Key"):
+            if num_retries < MAX_NUM_RETRIES:
                 self.__initiate_session()
                 return self.__lookup_dxcc(self, dxcc, num_retries + 1)
+            else:
+                raise QRZInvalidSession(**{'message':parsed_response['ERROR']} if parsed_response.get('ERROR') else {})
+        else:
+            return parsed_response
+#endregion
