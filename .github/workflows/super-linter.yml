@@ -30,6 +30,5 @@ jobs:
         env:
           VALIDATE_PYTHON_PYLINT: true
           VALIDATE_PYTHON_PYINK: true
-          VALIDATE_YAML: false
           # To report GitHub Actions status checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
