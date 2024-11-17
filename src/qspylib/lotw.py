@@ -18,7 +18,7 @@ class RetrievalFailure(Exception):
         self.message=message
         super().__init__(self, message)
 
-class UploadFailure(Exception):
+class UploadError(Exception):
     """A failure to upload a file to LOTW. This is due to a file being\
         rejected by LOTW. The error message from LOTW is provided in the exception.
     """
@@ -35,6 +35,9 @@ def get_last_upload(timeout: int = 15):
         timeout (int, optional): time in seconds to connection timeout.\
             Defaults to 15.
 
+    Raises:
+        HTTPError: An error occurred while trying to make a connection.
+
     Returns:
         csv: a csv of callsigns and last upload date
     """
@@ -45,8 +48,7 @@ def get_last_upload(timeout: int = 15):
         response = s.get(url, timeout=timeout)
         if response.status_code == requests.codes.ok:
             return response.text
-        else:
-            response.raise_for_status()
+        raise response.raise_for_status()
 
 def upload_logbook(file, timeout:int=120):
     """Given a .tq5 or .tq8, uploads it to LOTW.
@@ -60,7 +62,8 @@ def upload_logbook(file, timeout:int=120):
             Defaults to 120.
 
     Raises:
-        UploadFailure: Why the upload failed.
+        UploadFailure: The upload was rejected by LotW.
+        HTTPError: An error occurred while trying to make a connection.
 
     Returns:
         str: Return message from LOTW on file upload.
@@ -80,11 +83,9 @@ def upload_logbook(file, timeout:int=120):
             upl_message = str(result[result.index('<!-- .UPLMESSAGE. ')
                                      + 18:result[result_end_idx:].rindex(' -->')])
             if 'rejected' in upl_result:
-                raise UploadFailure(upl_message)
-            else:
-                return upl_message
-        else:
-            response.raise_for_status()
+                raise UploadError(upl_message)
+            return upl_message
+        raise response.raise_for_status()
 
 class LOTWClient:
     """Wrapper for LOTW API functionality that requires a logged-in session.
@@ -162,6 +163,7 @@ class LOTWClient:
         Raises:
             RetrievalFailure: A failure to retrieve information from LOTW.\
                 Contains the error received from LOTW.
+            HTTPError: An error occurred while trying to make a connection.
 
         Returns:
             qspylib.logbook.Logbook: A logbook containing the user's QSOs.
@@ -195,8 +197,7 @@ class LOTWClient:
                 raise RetrievalFailure
             if response.status_code == requests.codes.ok:
                 return Logbook(self.username, response.text)
-            else:
-                response.raise_for_status()
+            raise response.raise_for_status()
 
     def get_dxcc_credit(self, entity:str=None, ac_acct:str=None):
         """Gets DXCC award account credit, optionally for a specific DXCC \
@@ -215,6 +216,7 @@ class LOTWClient:
         Raises:
             RetrievalFailure: A failure to retrieve information from LOTW. \
                 Contains the error received from LOTW.
+            HTTPError: An error occurred while trying to make a connection.
 
         Returns:
             qspylib.logbook.Logbook: A logbook containing the user's QSOs.
@@ -234,7 +236,5 @@ class LOTWClient:
                 # outputs, but it's there, so we'll do something else.
                 if 'ARRL Logbook of the World DXCC QSL Card Report' not in response.text[:46]:
                     raise RetrievalFailure(response.text)
-                else:
-                    return Logbook(self.username, response.text)
-            else:
-                response.raise_for_status()
+                return Logbook(self.username, response.text)
+            raise response.raise_for_status()

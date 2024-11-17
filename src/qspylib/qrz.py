@@ -69,7 +69,7 @@ class QRZLogbookClient:
             Defaults to None.
 
         Raises:
-            HTMLError: An error occurred trying to make a connection.
+            HTTPError: An error occurred trying to make a connection.
 
         Returns:
             qspylib.logbook.Logbook: A logbook containing the user’s QSOs.
@@ -89,7 +89,7 @@ class QRZLogbookClient:
                                                + html.unescape(response.text))[4],
                                                  strict_parsing=True)
             return QRZLogbookClient.__stringify(self, response_dict["ADIF"])
-        
+
         #iff we didn't manage to return from a logged in session, raise an error
         raise response.raise_for_status()
 
@@ -135,7 +135,7 @@ class QRZLogbookClient:
             logbook.
 
         Raises:
-            HTMLError: An error occurred trying to make a connection.
+            HTTPError: An error occurred trying to make a connection.
 
         Returns:
             dict[str, list[str]]: A dict containing the returned information\
@@ -168,7 +168,7 @@ class QRZLogbookClient:
             list_logids (list, optional): A list of LOGIDs. Defaults to None.
 
         Raises:
-            HTMLError: An error occurred trying to make a connection.
+            HTTPError: An error occurred trying to make a connection.
 
         Returns:
             dict[str, list[str]]: A dict containing the returned status\
@@ -273,7 +273,7 @@ class QRZXMLClient:
             callsign (str): Callsign to lookup.
 
         Raises:
-            HTMLError: An error occurred trying to make a connection.
+            HTTPError: An error occurred trying to make a connection.
             QRZInvalidSession: An error occurred trying to instantiate a session.
 
         Returns:
@@ -309,7 +309,7 @@ class QRZXMLClient:
             dxcc (str): DXCC or prefix to lookup
 
         Raises:
-            HTMLError: An error occurred trying to make a connection.
+            HTTPError: An error occurred trying to make a connection.
             QRZInvalidSession: An error occurred trying to instantiate a session.
 
         Returns:

@@ -9,7 +9,7 @@ from ._version import __version__
 
 class eQSLError(Exception): #pylint: disable=invalid-name
     """An error occurred interfacing with eQSL."""
-    def __init__(self, message):
+    def __init__(self, message="An error occurred interfacing with eQSL"):
         super().__init__(message)
 
 # functions that don't require authentication
@@ -30,7 +30,8 @@ def verify_eqsl(callsign_from: str, callsign_to: str, qso_band: str,
             Defaults to 15.
 
     Raises:
-        Exception: Exception
+        eQSLError: An error occurred interfacing with eQSL.
+        HTTPError: An error occurred while trying to make a connection.
 
     Returns:
         bool, str: bool of whether the QSO was verified and a str of extra\
@@ -51,14 +52,13 @@ def verify_eqsl(callsign_from: str, callsign_to: str, qso_band: str,
                                                + __version__}, timeout=timeout)
         if r.status_code == requests.codes.ok:
             raw_result = r.text
+            # TO-DO: make this a case statement
             if 'Result - QSO on file' in raw_result:
                 return True, raw_result
-            elif 'Parameter missing' not in raw_result:
+            if 'Parameter missing' not in raw_result:
                 return False, raw_result
-            else:
-                raise eQSLError(raw_result)
-        else:
-            r.raise_for_status()
+            raise eQSLError(raw_result)
+        raise r.raise_for_status()
 
 def retrieve_graphic(username: str, password: str, callsign_from: str,
                      qso_year: str, qso_month: str, qso_day: str,
@@ -87,6 +87,7 @@ def retrieve_graphic(username: str, password: str, callsign_from: str,
 
     Raises:
         NotImplementedError: Not yet implemented.
+
     """
     raise NotImplementedError
 
@@ -95,6 +96,9 @@ def get_ag_list(timeout: int = 15):
 
     Args:
         timeout (int, optional): Seconds before connection times out. Defaults to 15.
+
+    Raises:
+        HTTPError: An error occurred while trying to make a connection.
 
     Returns:
         tuple, str: tuple contains a list of string callsigns, and a str header with the date the list was generated
@@ -109,8 +113,7 @@ def get_ag_list(timeout: int = 15):
             result_list = list()
             result_list += r.text.split('\r\n')
             return set(result_list[1:-1]), str(result_list[0])
-        else:
-            r.raise_for_status()
+        r.raise_for_status()
 
 def get_ag_list_dated(timeout: int = 15):
     """Get a list of Authenticity Guaranteed eQSL members with the date of\
@@ -119,6 +122,9 @@ def get_ag_list_dated(timeout: int = 15):
     Args:
         timeout (int, optional): Seconds before connection times out.\
             Defaults to 15.
+
+    Raises:
+        HTTPError: An error occurred while trying to make a connection.
 
     Returns:
         tuple: First element is a dict with key: callsign and value: date, and\
@@ -137,8 +143,7 @@ def get_ag_list_dated(timeout: int = 15):
                 call, date = pair.split(', ')
                 dict_calls[call] = date
             return dict_calls, header
-        else:
-            r.raise_for_status()
+        raise r.raise_for_status()
 
 def get_full_member_list(timeout: int = 15):
     """Get a list of all members of QRZ.
@@ -146,6 +151,9 @@ def get_full_member_list(timeout: int = 15):
     Args:
         timeout (int, optional): Seconds before connection times out.\
             Defaults to 15.
+
+    Raises:
+        HTTPError: An error occurred while trying to make a connection.
 
     Returns:
         dict: key is the callsign and the value is a tuple of: GridSquare, AG,\
@@ -164,9 +172,9 @@ def get_full_member_list(timeout: int = 15):
                 dict_calls[data[0]] = data[1:]
             return dict_calls
         else:
-            r.raise_for_status()
+            raise r.raise_for_status()
 
-def get_users_data(callsign: str, timeout: int = 15):
+def get_users_data(callsign: str):
     """Get a specific user's data from the full member list.
 
     Note:
@@ -175,8 +183,6 @@ def get_users_data(callsign: str, timeout: int = 15):
 
     Args:
         callsign (str): callsign to get data about
-        timeout (int, optional): Seconds before connection times out.\
-            Defaults to 15.
 
     Returns:
         tuple: contains: GridSquare, AG, Last Upload
@@ -230,7 +236,8 @@ class eQSLClient: #pylint: disable=invalid-name
         """Gets last upload date for the logged in user.
 
         Raises:
-            Exception: Exception
+            eQSLError: An error occurred interfacing with eQSL.
+            HTTPError: An error occurred while trying to make a connection.
 
         Returns:
             str: date of last upload for the active user. Date is formatted:\
@@ -243,8 +250,8 @@ class eQSLClient: #pylint: disable=invalid-name
                 success_txt = 'Your last ADIF upload was'
                 if success_txt in r.text:
                     return r.text[r.text.index('(')+1:r.text.index(')')]
-                else:
-                    raise eQSLError(r.text)
+                raise eQSLError(r.text)
+            raise r.raise_for_status()
 
     def fetch_inbox(self, limit_date_lo:str=None, limit_date_hi:str=None,
                     rcvd_since:str=None, confirmed_only:str=None,
@@ -280,7 +287,8 @@ class eQSLClient: #pylint: disable=invalid-name
                 Defaults to None.
 
         Raises:
-            Exception: Exception
+            eQSLError: An error occurred interfacing with eQSL.
+            HTTPError: An error occurred while trying to make a connection.
 
         Returns:
             qspylib.logbook.Logbook: A logbook containing the user's QSOs.
@@ -311,16 +319,15 @@ class eQSLClient: #pylint: disable=invalid-name
                 adif_response = requests.get(adif_link, timeout=self.timeout)
                 if adif_response.status_code == requests.codes.ok:
                     return Logbook(self.callsign, adif_response.text)
-                else:
-                    r.raise_for_status()
-            else:
-                r.raise_for_status()
+                raise r.raise_for_status()
+            raise r.raise_for_status()
 
     def fetch_outbox(self):
         """Fetches OUTGOING QSOs, from the user's eQSL Outbox.
 
         Raises:
-            Exception: Exception
+            eQSLError: An error occurred interfacing with eQSL.
+            HTTPError: An error occurred while trying to make a connection.
 
         Returns:
             qspylib.logbook.Logbook: A logbook containing the user's QSOs.
@@ -339,7 +346,5 @@ class eQSLClient: #pylint: disable=invalid-name
                 adif_response = requests.get(adif_link, timeout=self.timeout)
                 if adif_response.status_code == requests.codes.ok   :
                     return Logbook(self.callsign, adif_response.text)
-                else:
-                    r.raise_for_status()
-            else:
-                r.raise_for_status()
+                raise r.raise_for_status()
+            raise r.raise_for_status()
