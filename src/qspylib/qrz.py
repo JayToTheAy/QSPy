@@ -29,7 +29,7 @@ class QRZInvalidSession(Exception):
     """Error for when session is invalid.
     """
     def __init__(self, message="Got no session key back. This session is \
-                 invalid."):
+                invalid."):
         self.message=message
         super().__init__(self, message)
 #endregion
@@ -58,15 +58,15 @@ class QRZLogbookClient:
         """Fetches the logbook corresponding to the Client's API Key.
 
         Note:
-            If too many records are fetched at once, parsing will fail to 
-            complete and not all response keys will be returned. To prevent
-            this, you should fetch the logbook in chunks, using the highest 
-            logid to start fetching the next chunk. See fetch_logbook_paged,
+            If too many records are fetched at once, parsing will fail to\
+            complete and not all response keys will be returned. To prevent\
+            this, you should fetch the logbook in chunks, using the highest\
+            logid to start fetching the next chunk. See fetch_logbook_paged,\
             unless that hasn't been implemented yet; then use this, and suffer.
             
         Args:
             option (str, optional): Optional parameters as specified by QRZ,\
-            like "MODE:SSB,CALL:W1AW". This should be a comma separated string.
+            like "MODE:SSB,CALL:W1AW". This should be a comma separated string.\
             Defaults to None.
 
         Returns:
@@ -230,7 +230,8 @@ class QRZXMLClient:
                   'password': self.password,
                   'agent': self.agent}
 
-        response = requests.get(self.base_url, params=params, headers=self.headers)
+        response = requests.get(self.base_url, params=params,
+                                headers=self.headers)
         xml_dict = xmltodict.parse(response.text)
         key = xml_dict["QRZDatabase"]["Session"].get("Key")
         if not key:
@@ -243,7 +244,8 @@ class QRZXMLClient:
         params = {'agent': self.agent,
                   's': self.session_key}
 
-        response = requests.get(self.base_url, params=params, headers=self.headers)
+        response = requests.get(self.base_url, params=params,
+                                headers=self.headers)
         if not xmltodict.parse(response.text)["QRZDatabase"]["Session"].get("Key"):
             raise QRZInvalidSession()
         
@@ -257,7 +259,8 @@ class QRZXMLClient:
         }
         num_retries = 0
         while num_retries < MAX_NUM_RETRIES:
-            response = requests.get(self.base_url, params=params, headers=self.headers)
+            response = requests.get(self.base_url, params=params,
+                                    headers=self.headers)
             if response.status_code == requests.status.ok:
                 parsed_response = xmltodict.parse(response.text)
                 if not parsed_response.get("Key"):
@@ -267,35 +270,9 @@ class QRZXMLClient:
                     return parsed_response
             else:
                 raise response.raise_for_status()
-    
-    def __lookup_callsign(self, callsign:str, num_retries:int) -> OrderedDict[str, Any]:
-        """_summary_
-
-        Args:
-            callsign (str): _description_
-            num_retries (int): _description_
-
-        Raises:
-            QRZInvalidSession: _description_
-
-        Returns:
-            OrderedDict[str, Any]: _description_
-        """
-        params = {
-            'agent': self.agent,
-            's': self.session_key,
-            'callsign': callsign
-        }
-        response = requests.get(self.base_url, params=params, headers=self.headers)
-        parsed_response = xmltodict.parse(response.text)
-        if not parsed_response.get("Key"):
-            if num_retries < MAX_NUM_RETRIES:
-                self.__initiate_session()
-                return self.__lookup_callsign(self, callsign, num_retries + 1)
-            else:
-                raise QRZInvalidSession(**{'message':parsed_response['ERROR']} if parsed_response.get('ERROR') else {})
         else:
-            return parsed_response
+            raise QRZInvalidSession(**{'message':parsed_response['ERROR']} \
+                                    if parsed_response.get('ERROR') else {})
 
     def lookup_dxcc(self, dxcc:str) -> OrderedDict[str, Any]:
         """Looks up a DXCC by prefix or DXCC number.
@@ -304,39 +281,35 @@ class QRZXMLClient:
             dxcc (str): DXCC or prefix to lookup
 
         Raises:
-            QRZInvalidSession: Error specifying why the session is invalid and the lookup failed.
+            QRZInvalidSession: Error specifying why the session is invalid\
+            and the lookup failed.
 
         Returns:
-            OrderedDict[str, Any]: Data on the DXCC looked up, looked up by key; this data includes DXCC, CC, name, continent, ituzone, cqzone, timezone, lat, lon, & notes
+            OrderedDict[str, Any]: Data on the DXCC looked up, looked up by\
+            key; this data includes DXCC, CC, name, continent, ituzone, cqzone,\
+            timezone, lat, lon, & notes
         """
-        return self.__lookup_dxcc(dxcc, 0)
-    
-    def __lookup_dxcc(self, dxcc:str, num_retries:int) -> OrderedDict[str, Any]:
-        """Lookup helper for lookup_dxcc, allows for retry, presumably a prior fail is from the session expiring
-
-        Args:
-            dxcc (str): DXCC to lookup
-            num_retries (int): number of attempts already made to lookup
-
-        Raises:
-            QRZInvalidSession: Error specifying why the session is invalid and the lookup failed.
-
-        Returns:
-            OrderedDict[str, Any]: Data on the DXCC looked up, looked up by key; this data includes DXCC, CC, name, continent, ituzone, cqzone, timezone, lat, lon, & notes
-        """
+        #return self.__lookup_dxcc(dxcc, 0)
         params = {
             'agent': self.agent,
             's': self.session_key,
             'dxcc': dxcc
         }
-        response = requests.get(self.base_url, params=params, headers=self.headers)
-        parsed_response = xmltodict.parse(response.text)
-        if not parsed_response.get("Key"):
-            if num_retries < MAX_NUM_RETRIES:
-                self.__initiate_session()
-                return self.__lookup_dxcc(self, dxcc, num_retries + 1)
+        num_retries = 0
+        while num_retries < MAX_NUM_RETRIES:
+            response = requests.get(self.base_url, params=params,
+                                    headers=self.headers)
+            if response.status_code == requests.status.ok:
+                parsed_response = xmltodict.parse(response.text)
+                if not parsed_response.get("Key"):
+                    self.__initiate_session()
+                    num_retries += 1
+                else:
+                    return parsed_response
             else:
-                raise QRZInvalidSession(**{'message':parsed_response['ERROR']} if parsed_response.get('ERROR') else {})
+                raise response.raise_for_status()
         else:
-            return parsed_response
+            raise QRZInvalidSession(**{'message':parsed_response['ERROR']} \
+                                    if parsed_response.get('ERROR') else {})
+
 #endregion
