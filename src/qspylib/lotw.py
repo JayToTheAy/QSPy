@@ -237,4 +237,3 @@ class LOTWClient:
                     return Logbook(self.username, response.text)
             else:
                 response.raise_for_status()
-
