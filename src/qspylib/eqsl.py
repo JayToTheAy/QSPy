@@ -101,7 +101,8 @@ def get_ag_list(timeout: int = 15):
         HTTPError: An error occurred while trying to make a connection.
 
     Returns:
-        tuple, str: tuple contains a list of string callsigns, and a str header with the date the list was generated
+        tuple, str: tuple contains a list of string callsigns, and a str header\
+            with the date the list was generated
     """
 
     url = "https://www.eqsl.cc/qslcard/DownloadedFiles/AGMemberList.txt"
@@ -110,10 +111,10 @@ def get_ag_list(timeout: int = 15):
         r = s.get(url, headers={'user-agent': 'pyQSP/' + __version__},
                   timeout=timeout)
         if r.status_code == requests.codes.ok:
-            result_list = list()
+            result_list = []
             result_list += r.text.split('\r\n')
             return set(result_list[1:-1]), str(result_list[0])
-        r.raise_for_status()
+        raise r.raise_for_status()
 
 def get_ag_list_dated(timeout: int = 15):
     """Get a list of Authenticity Guaranteed eQSL members with the date of\
@@ -171,8 +172,7 @@ def get_full_member_list(timeout: int = 15):
                 data = row.split(',')
                 dict_calls[data[0]] = data[1:]
             return dict_calls
-        else:
-            raise r.raise_for_status()
+        raise r.raise_for_status()
 
 def get_users_data(callsign: str):
     """Get a specific user's data from the full member list.
@@ -208,7 +208,7 @@ class eQSLClient: #pylint: disable=invalid-name
             timeout (int, optional): time to timeout for the entire Client.\
                 Defaults to 15.
         """
-        self.callsign = username,
+        self.callsign = username
         self.timeout = timeout
         self.base_url = "https://www.eqsl.cc/qslcard/"
 

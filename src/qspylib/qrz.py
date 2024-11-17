@@ -197,7 +197,8 @@ class QRZLogbookClient:
 
     def __stringify(self, adi_log) -> Logbook:
         #qrz_output = html.unescape(adi_log)
-        #start_of_log, end_of_log = qrz_output.index('ADIF=') + 5, qrz_output.rindex('<eor>\n\n') + 4
+        #start_of_log, end_of_log = qrz_output.index('ADIF=') + 5,
+        # qrz_output.rindex('<eor>\n\n') + 4
         log_adi = "<EOH>" + adi_log #adif_io expects a header, so we're giving it an end of header
         return Logbook(self.key, log_adi)
 
