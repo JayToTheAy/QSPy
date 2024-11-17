@@ -182,7 +182,7 @@ def get_users_data(callsign: str, timeout: int = 15):
         tuple: contains: GridSquare, AG, Last Upload
     """
     dict_users: dict = get_full_member_list()
-    return dict_users.get(callsign, timeout=timeout)
+    return dict_users.get(callsign)
 
 
 # things that require authentication
