@@ -19,15 +19,14 @@ class ClubLogClient:
             email (str): Email address for the ClubLog account
             callsign (str): Callsign for the ClubLog account
             password (str): Password for the ClubLog account
-            
         """
         self.email = email
         self.callsign = callsign
         self.password = password
         self.base_url = "https://clublog.org/getadif.php"
-    
 
-    def fetch_logbook(self):
+
+    def fetch_logbook(self, timeout: int = 15) -> Logbook:
         """Fetch the user's ClubLog logbook.
 
         Returns:

@@ -9,17 +9,17 @@ from ._version import __version__
 
 # functions that don't require authentication
 
-def verify_eqsl(CallsignFrom: str, CallsignTo: str, QSOBand: str,
-                QSOMode: str = None, QSODate: str = None, timeout: int = 15):
+def verify_eqsl(callsign_from: str, callsign_to: str, qso_band: str,
+                qso_mode: str = None, qso_date: str = None, timeout: int = 15):
     """Verify a QSL with eQSL.
 
     Args:
-        CallsignFrom (str): Callsign originating QSO (i.e. N5UP)
-        CallsignTo (str): Callsign receiving QSO (i.e. TE5T)
-        QSOBand (str): Band QSO took place on (i.e. 160m)
-        QSOMode (str, optional): Mode QSO took place with (i.e. SSB).\
+        callsign_from (str): Callsign originating QSO (i.e. N5UP)
+        callsign_to (str): Callsign receiving QSO (i.e. TE5T)
+        qso_band (str): Band QSO took place on (i.e. 160m)
+        qso_mode (str, optional): Mode QSO took place with (i.e. SSB).\
             Defaults to None.
-        QSODate (str, optional): Date QSO took place (i.e. 01/31/2000).\
+        qso_date (str, optional): Date QSO took place (i.e. 01/31/2000).\
             Defaults to None.
         timeout (int, optional): Seconds before connection times out.\
             Defaults to 15.
@@ -34,11 +34,11 @@ def verify_eqsl(CallsignFrom: str, CallsignTo: str, QSOBand: str,
 
     url = "https://www.eqsl.cc/qslcard/VerifyQSO.cfm"
     params = {
-        'CallsignFrom': CallsignFrom,
-        'CallsignTo': CallsignTo,
-        'QSOBand': QSOBand,
-        'QSOMode': QSOMode,
-        'QSODate': QSODate,
+        'CallsignFrom': callsign_from,
+        'CallsignTo': callsign_to,
+        'QSOBand': qso_band,
+        'QSOMode': qso_mode,
+        'QSODate': qso_date,
     }
 
     with requests.Session() as s:
@@ -55,10 +55,10 @@ def verify_eqsl(CallsignFrom: str, CallsignTo: str, QSOBand: str,
         else:
             r.raise_for_status()
 
-def retrieve_graphic(username: str, password: str, CallsignFrom: str,
-                     QSOYear: str, QSOMonth: str, QSODay: str, QSOHour: str,
-                     QSOMinute: str, QSOBand: str, QSOMode: str,
-                     timeout: int = 15):
+def retrieve_graphic(username: str, password: str, callsign_from: str,
+                     qso_year: str, qso_month: str, qso_day: str,
+                     qso_hour: str, qso_minute: str, qso_band: str,
+                     qso_mode: str, timeout: int = 15):
     """Retrieve the graphic image for a QSO from eQSL.
 
     Note: 
@@ -67,14 +67,14 @@ def retrieve_graphic(username: str, password: str, CallsignFrom: str,
     Args:
         username (str): The callsign of the recipient of the eQSL
         password (str): The password of the user's account
-        CallsignFrom (str): The callsign of the sender of the eQSL
-        QSOYear (str): YYYY OR YY format date of the QSO
-        QSOMonth (str): MM format
-        QSODay (str): DD format
-        QSOHour (str): HH format (24-hour time)
-        QSOMinute (str): MM format
-        QSOBand (str): 20m, 80M, 70cm, etc. (case insensitive)
-        QSOMode (str): Must match exactly and should be an ADIF-compatible mode
+        callsign_from (str): The callsign of the sender of the eQSL
+        qso_year (str): YYYY OR YY format date of the QSO
+        qso_month (str): MM format
+        qso_day (str): DD format
+        qso_hour (str): HH format (24-hour time)
+        qso_minute (str): MM format
+        qso_band (str): 20m, 80M, 70cm, etc. (case insensitive)
+        qso_mode (str): Must match exactly and should be an ADIF-compatible mode
         timeout (int, optional): time to connection timeout. Defaults to 15.
 
     Todo:
@@ -127,7 +127,7 @@ def get_ag_list_dated(timeout: int = 15):
         if r.status_code == requests.codes.ok:
             result_list = r.text.split('\r\n')
             loc, header = result_list[1:-1], str(result_list[0])
-            dict_calls = dict()
+            dict_calls = {}
             for pair in loc:
                 call, date = pair.split(', ')
                 dict_calls[call] = date
@@ -146,15 +146,14 @@ def get_full_member_list(timeout: int = 15):
         dict: key is the callsign and the value is a tuple of: GridSquare, AG,\
             Last Upload
     """
-    
 
     url = "https://www.eqsl.cc/DownloadedFiles/eQSLMemberList.csv"
 
     with requests.Session() as s:
-        r = requests.get(url, timeout=timeout)
+        r = s.get(url, timeout=timeout)
         if r.status_code == requests.codes.ok:
             result_list = r.text.split('\r\n')[1:-1]
-            dict_calls = dict()
+            dict_calls = {}
             for row in result_list:
                 data = row.split(',')
                 dict_calls[data[0]] = data[1:]
@@ -178,7 +177,7 @@ def get_users_data(callsign: str, timeout: int = 15):
         tuple: contains: GridSquare, AG, Last Upload
     """
     dict_users: dict = get_full_member_list()
-    return dict_users.get(callsign)
+    return dict_users.get(callsign, timeout=timeout)
 
 
 # things that require authentication
@@ -187,14 +186,14 @@ class eQSLClient:
         perform actions on their behalf.
     """
 
-    def __init__(self, username: str, password: str, QTHNickname: str = None,
+    def __init__(self, username: str, password: str, qth_nickname: str = None,
                  timeout: int = 15):
         """Create an eQSLClient object.
 
         Args:
             username (str): callsign to login with
             password (str): password to login with
-            QTHNickname (str, optional): QTHNickname. Defaults to None.
+            qth_nickname (str, optional): QTHNickname. Defaults to None.
             timeout (int, optional): time to timeout for the entire Client.\
                 Defaults to 15.
         """
@@ -207,11 +206,11 @@ class eQSLClient:
         session.params = {k: v for k, v in {
             'username': username,
             'password': password,
-            'QTHNickname': QTHNickname }.items() if v is not None}
+            'QTHNickname': qth_nickname }.items() if v is not None}
 
         session.headers = {'User-Agent': 'pyQSP/' + __version__}
         self.session = session
-    
+
     def set_timeout(self, timeout: int):
         """Set timeout for the Client to a new value.
 
@@ -219,7 +218,7 @@ class eQSLClient:
             timeout (int): time to timeout in seconds.
         """
         self.timeout = timeout
-    
+
     # actual GETs
 
     def get_last_upload_date(self):
@@ -242,37 +241,37 @@ class eQSLClient:
                 else:
                     raise Exception(r.text)
 
-    def fetch_inbox(self, LimitDateLo:str=None, LimitDateHi:str=None,
-                    RcvdSince:str=None, ConfirmedOnly:str=None,
-                    UnconfirmedOnly:str=None, Archive:str=None,
-                    HamOnly:str=None):
+    def fetch_inbox(self, limit_date_lo:str=None, limit_date_hi:str=None,
+                    rcvd_since:str=None, confirmed_only:str=None,
+                    unconfirmed_only:str=None, archive:str=None,
+                    ham_only:str=None):
         """Fetches INCOMING QSOs, from the user's eQSL Inbox.
 
         Args:
-            LimitDateLo (str, optional): Earliest QSO date to download\
+            limit_date_lo (str, optional): Earliest QSO date to download\
                 (oddly, in MM/DD/YYYY format with escape code 2F for slashes),\
                 optionally append HH:MM otherwise the default is 00:00.\
                 Defaults to None.
-            LimitDateHi (str, optional): Latest QSO date to download\
+            limit_date_hi (str, optional): Latest QSO date to download\
                 (oddly, in MM/DD/YYYY format with escape code 2F), optionally\
                 append HH:MM otherwise the default is 23:59 to include the\
                 entire day.\
                 Defaults to None.
-            RcvdSince (str, optional): (YYYYMMDDHHMM) Everything that was\
+            rcvd_since (str, optional): (YYYYMMDDHHMM) Everything that was\
                 entered into the database on or after this date/time (Valid\
                 range 01/01/1900 - 12/31/2078).\
                 Defaults to None.
-            ConfirmedOnly (str, optional): Set to any value to signify you\
+            confirmed_only (str, optional): Set to any value to signify you\
                 only want to download Inbox items you HAVE confirmed.\
                 Defaults to None.
-            UnconfirmedOnly (str, optional): Set to any value to signify you\
+            unconfirmed_only (str, optional): Set to any value to signify you\
                 only want to download Inbox items you have NOT confirmed.\
                 Defaults to None.
-            Archive (str, optional): 1 for Archived records ONLY; 0 for Inbox\
+            archive (str, optional): 1 for Archived records ONLY; 0 for Inbox\
                 (non-archived) ONLY; omit this parameter to retrieve ALL\
                 records in Inbox and Archive.\
                 Defaults to None.
-            HamOnly (str, optional): anything, filters out all SWL contacts.\
+            ham_only (str, optional): anything, filters out all SWL contacts.\
                 Defaults to None.
 
         Raises:
@@ -282,13 +281,13 @@ class eQSLClient:
             qspylib.logbook.Logbook: A logbook containing the user's QSOs.
         """
         params = {
-            'LimitDateLo': LimitDateLo,
-            'LimitDateHi': LimitDateHi,
-            'RcvdSince': RcvdSince,
-            'ConfirmedOnly': ConfirmedOnly,
-            'UnconfirmedOnly': UnconfirmedOnly,
-            'Archive': Archive,
-            'HamOnly': HamOnly
+            'LimitDateLo': limit_date_lo,
+            'LimitDateHi': limit_date_hi,
+            'RcvdSince': rcvd_since,
+            'ConfirmedOnly': confirmed_only,
+            'UnconfirmedOnly': unconfirmed_only,
+            'Archive': archive,
+            'HamOnly': ham_only
         }
         # filter down to only used params
         params = {k: v for k, v in params.items() if v is not None}
@@ -304,7 +303,7 @@ class eQSLClient:
                 adif_link_start_idx = r.text.index('<LI><A HREF="..') + 15
                 adif_link_end_idx = r.text.index('">.ADI file</A>')
                 adif_link = self.base_url + r.text[adif_link_start_idx:adif_link_end_idx]
-                adif_response = requests.get(adif_link)
+                adif_response = requests.get(adif_link, timeout=self.timeout)
                 if adif_response.status_code == requests.codes.ok:
                     return Logbook(self.callsign, adif_response.text)
                 else:
@@ -317,6 +316,7 @@ class eQSLClient:
 
         Raises:
             Exception: Exception
+
         Returns:
             qspylib.logbook.Logbook: A logbook containing the user's QSOs.
         """
@@ -331,12 +331,10 @@ class eQSLClient:
                 adif_link_start_idx = r.text.index('<LI><A HREF="..') + 15
                 adif_link_end_idx = r.text.index('">.ADI file</A>')
                 adif_link = self.base_url + r.text[adif_link_start_idx:adif_link_end_idx]
-                adif_response = requests.get(adif_link)
+                adif_response = requests.get(adif_link, timeout=self.timeout)
                 if adif_response.status_code == requests.codes.ok   :
                     return Logbook(self.callsign, adif_response.text)
                 else:
                     r.raise_for_status()
             else:
                 r.raise_for_status()
-
-    

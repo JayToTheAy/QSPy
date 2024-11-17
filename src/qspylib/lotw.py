@@ -77,7 +77,8 @@ def upload_logbook(file, timeout:int=120):
             result_start_idx = result.index('<!-- .UPL. ')
             result_end_idx = result[result_start_idx + 11:].index(' -->')
             upl_result = result[result_start_idx:result_end_idx]
-            upl_message = str(result[result.index('<!-- .UPLMESSAGE. ') + 18:result[result_end_idx:].rindex(' -->')])
+            upl_message = str(result[result.index('<!-- .UPLMESSAGE. ')
+                                     + 18:result[result_end_idx:].rindex(' -->')])
             if 'rejected' in upl_result:
                 raise UploadFailure(upl_message)
             else:
@@ -225,11 +226,11 @@ class LOTWClient:
         }
         # filter down to only used params
         params = {k: v for k, v in params.items() if v is not None}
-        
+
         with self.session as s:
             response = s.get(self.base_url + dxcc_url, params=params)
             if response.status_code == requests.codes.ok:
-                # lotw lies, and claims an <eoh> will be absent from bad 
+                # lotw lies, and claims an <eoh> will be absent from bad
                 # outputs, but it's there, so we'll do something else.
                 if 'ARRL Logbook of the World DXCC QSL Card Report' not in response.text[:46]:
                     raise RetrievalFailure(response.text)
