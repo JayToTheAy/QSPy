@@ -1,7 +1,9 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
-"""A PyTest module for confirming functionality works.
+"""A PyTest module for confirming functionality works None of these should be
+called; these are automatically ran by PyTest when pushes are made to the repo,
+or when the user runs `pytest` in the root directory of the project.
 """
 import adif_io
 import pytest
@@ -14,13 +16,17 @@ import qspylib.qrz as qrz
 # logbook tests #
 #################
 def test_equality_of_qso():
-    adif_qso = adif_io.QSO({'CALL': 'W1AW', 'BAND': '20m', 'MODE': 'SSB', 'QSO_DATE': '20220101', 'TIME_ON': '0000', 'QSL_RCVD': 'N'})
+    adif_qso = adif_io.QSO({'CALL': 'W1AW', 'BAND': '20m', 'MODE': 'SSB',
+                            'QSO_DATE': '20220101', 'TIME_ON': '0000',
+                            'QSL_RCVD': 'N'})
     qso1 = qspylib.logbook.QSO('W1AW', '20m', 'SSB', '20220101', '0000', 'N')
     qso2 = qspylib.logbook.qso_from_adi(adif_qso)
     assert qso1 == qso2
 
 def test_inequality_of_qso():
-    adif_qso = adif_io.QSO({'CALL': 'W1AW/4', 'BAND': '20m', 'MODE': 'SSB', 'QSO_DATE': '20220101', 'TIME_ON': '0000', 'QSL_RCVD': 'N'})
+    adif_qso = adif_io.QSO({'CALL': 'W1AW/4', 'BAND': '20m', 'MODE': 'SSB',
+                            'QSO_DATE': '20220101', 'TIME_ON': '0000',
+                            'QSL_RCVD': 'N'})
     qso1 = qspylib.logbook.QSO('W1AW', '20m', 'SSB', '20220101', '0000', 'N')
     qso2 = qspylib.logbook.qso_from_adi(adif_qso)
     assert qso1 != qso2
@@ -71,10 +77,13 @@ def test_adding_and_removing():
 <QSLRDATE:8>20240102\
 <eor>"
     log = qspylib.logbook.Logbook("TE5T", adif_string)
-    new_adif_qso = adif_io.QSO({'CALL': 'W1AW/5', 'BAND': '20m', 'MODE': 'SSB', 'QSO_DATE': '20220101', 'TIME_ON': '0000', 'QSL_RCVD': 'N'})
+    new_adif_qso = adif_io.QSO({'CALL': 'W1AW/5', 'BAND': '20m', 'MODE': 'SSB',
+                                'QSO_DATE': '20220101', 'TIME_ON': '0000',
+                                'QSL_RCVD': 'N'})
     log.write_qso(new_adif_qso)
     log.discard_qso(log.adi[0])
-    assert len(log.log) == 1 and len(log.adi) == 1 and log.adi[0]['CALL'] == 'W1AW/5' and log.log[0].their_call == 'W1AW/5'
+    assert len(log.log) == 1 and len(log.adi) == 1 and \
+        log.adi[0]['CALL'] == 'W1AW/5' and log.log[0].their_call == 'W1AW/5'
 
 ##############
 # lotw tests #
@@ -99,11 +108,13 @@ def test_bad_login_dxcc():
 ###############
 
 def test_verify_a_bad_eqsl():
-    is_qsl_real, result = eqsl.verify_eqsl('N5UP', 'TEST', '160m', 'SSB', '01/01/2000')
+    is_qsl_real, result = eqsl.verify_eqsl('N5UP', 'TEST', '160m', 'SSB', \
+                                           '01/01/2000')
     assert 'Error - Result: QSO not on file' in result and is_qsl_real is False
 
 def test_verify_a_good_eqsl():
-    is_qsl_real, result = eqsl.verify_eqsl('ai5zk', 'w1tjl', '10m', 'SSB', '01/20/2024')
+    is_qsl_real, result = eqsl.verify_eqsl('ai5zk', 'w1tjl', '10m', 'SSB', \
+                                           '01/20/2024')
     assert 'Result - QSO on file' in result and is_qsl_real is True
 
 def test_pull_a_known_ag_call():
