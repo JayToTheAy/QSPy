@@ -10,14 +10,17 @@ from ._version import __version__
 # exceptions
 
 class RetrievalFailure(Exception):
-    """A failure to retrieve information from LOTW. This can be due to a connection error, or a bad response from the server.
+    """A failure to retrieve information from LOTW. This can be due to a\
+        connection error, or a bad response from the server.
     """
-    def __init__(self, message="Failed to retrieve information. Confirm log-in credentials are correct."):
+    def __init__(self, message="Failed to retrieve information. Confirm log-in \
+                 credentials are correct."):
         self.message=message
         super().__init__(self, message)
 
 class UploadFailure(Exception):
-    """A failure to upload a file to LOTW. This is due to a file being rejected by LOTW. The error message from LOTW is provided in the exception.
+    """A failure to upload a file to LOTW. This is due to a file being\
+        rejected by LOTW. The error message from LOTW is provided in the exception.
     """
     def __init__(self, message="Failed to upload file."):
         self.message=message
@@ -29,7 +32,8 @@ def get_last_upload(timeout: int = 15):
     """Queries LOTW for a list of callsigns and date they last uploaded.
 
     Args:
-        timeout (int, optional): time in seconds to connection timeout. Defaults to 15.
+        timeout (int, optional): time in seconds to connection timeout.\
+            Defaults to 15.
 
     Returns:
         csv: a csv of callsigns and last upload date
@@ -52,7 +56,8 @@ def upload_logbook(file, timeout:int=120):
 
     Args:
         file (_type_): file to be uploaded
-        timeout (int, optional): time in seconds to connection timeout. Defaults to 120.
+        timeout (int, optional): time in seconds to connection timeout.\
+            Defaults to 120.
 
     Raises:
         UploadFailure: Why the upload failed.
@@ -103,31 +108,59 @@ class LOTWClient:
 
         self.session = session
 
-    def fetch_logbook(self, qso_query=1, qso_qsl='yes', qso_qslsince=None, qso_qsorxsince=None, qso_owncall=None, 
-                      qso_callsign=None,qso_mode=None,qso_band=None,qso_dxcc=None,qso_startdate=None, qso_starttime=None, 
-                      qso_enddate=None, qso_endtime=None, qso_mydetail=None,qso_qsldetail=None, qsl_withown=None):
+    def fetch_logbook(self, qso_query=1, qso_qsl='yes', qso_qslsince=None,
+                      qso_qsorxsince=None, qso_owncall=None, qso_callsign=None,
+                      qso_mode=None, qso_band=None,qso_dxcc=None,
+                      qso_startdate=None, qso_starttime=None, qso_enddate=None,
+                      qso_endtime=None, qso_mydetail=None,qso_qsldetail=None,
+                      qsl_withown=None):
         """_summary_
 
         Args:
-            qso_query (int, optional): If absent, ADIF file will contain no QSO records. Defaults to 1.
-            qso_qsl (str, optional): If "yes", only QSL records are returned (can be 'yes' or 'no'). Defaults to 'yes'.
-            qso_qslsince (_type_, optional): QSLs since specified datetime (YYYY-MM-DD HH:MM:SS). Ignored unless qso_qsl="yes". Defaults to None.
-            qso_qsorxsince (_type_, optional): QSOs received since specified datetime. Ignored unless qso_qsl="no". Defaults to None.
-            qso_owncall (_type_, optional): Returns records where "own" call sign matches. Defaults to None.
-            qso_callsign (_type_, optional): Returns records where "worked" call sign matches. Defaults to None.
-            qso_mode (_type_, optional): Returns records where mode matches. Defaults to None.
-            qso_band (_type_, optional): Returns records where band matches. Defaults to None.
-            qso_dxcc (_type_, optional): Returns matching DXCC entities, implies qso_qsl='yes'. Defaults to None.
-            qso_startdate (_type_, optional): Returns only records with a QSO date on or after the specified value. Defaults to None.
-            qso_starttime (_type_, optional): Returns only records with a QSO time at or after the specified value on the starting date. This value is ignored if qso_startdate is not provided. Defaults to None.
-            qso_enddate (_type_, optional): Returns only records with a QSO date on or before the specified value. Defaults to None.
-            qso_endtime (_type_, optional): Returns only records with a QSO time at or before the specified value on the ending date. This value is ignored if qso_enddate is not provided. Defaults to None.
-            qso_mydetail (_type_, optional): If "yes", returns fields that contain the Logging station's location data, if any. Defaults to None.
-            qso_qsldetail (_type_, optional): If "yes", returns fields that contain the QSLing station's location data, if any. Defaults to None.
-            qsl_withown (_type_, optional): If "yes", each record contains the STATION_CALLSIGN and APP_LoTW_OWNCALL fields to identify the "own" call sign used for the QSO. Defaults to None.
+            qso_query (int, optional): If absent, ADIF file will contain no\
+                QSO records. Defaults to 1.
+            qso_qsl (str, optional): If "yes", only QSL records are returned \
+                (can be 'yes' or 'no'). Defaults to 'yes'.
+            qso_qslsince (_type_, optional): QSLs since specified datetime \
+                (YYYY-MM-DD HH:MM:SS). Ignored unless qso_qsl="yes". \
+                    Defaults to None.
+            qso_qsorxsince (_type_, optional): QSOs received since specified \
+                datetime. Ignored unless qso_qsl="no". Defaults to None.
+            qso_owncall (_type_, optional): Returns records where "own" call \
+                sign matches. Defaults to None.
+            qso_callsign (_type_, optional): Returns records where "worked" \
+                call sign matches. Defaults to None.
+            qso_mode (_type_, optional): Returns records where mode matches. \
+                Defaults to None.
+            qso_band (_type_, optional): Returns records where band matches. \
+                Defaults to None.
+            qso_dxcc (_type_, optional): Returns matching DXCC entities, \
+                implies qso_qsl='yes'. Defaults to None.
+            qso_startdate (_type_, optional): Returns only records with a QSO \
+                date on or after the specified value. Defaults to None.
+            qso_starttime (_type_, optional): Returns only records with a QSO \
+                time at or after the specified value on the starting date. \
+                This value is ignored if qso_startdate is not provided. \
+                Defaults to None.
+            qso_enddate (_type_, optional): Returns only records with a QSO \
+                date on or before the specified value. Defaults to None.
+            qso_endtime (_type_, optional): Returns only records with a QSO \
+                time at or before the specified value on the ending date. \
+                This value is ignored if qso_enddate is not provided. \
+                Defaults to None.
+            qso_mydetail (_type_, optional): If "yes", returns fields that \
+                contain the Logging station's location data, if any. \
+                Defaults to None.
+            qso_qsldetail (_type_, optional): If "yes", returns fields that \
+                contain the QSLing station's location data, if any. \
+                Defaults to None.
+            qsl_withown (_type_, optional): If "yes", each record contains the \
+                STATION_CALLSIGN and APP_LoTW_OWNCALL fields to identify the \
+                "own" call sign used for the QSO. Defaults to None.
 
         Raises:
-            RetrievalFailure: A failure to retrieve information from LOTW. Contains the error received from LOTW.
+            RetrievalFailure: A failure to retrieve information from LOTW.\
+                Contains the error received from LOTW.
 
         Returns:
             qspylib.logbook.Logbook: A logbook containing the user's QSOs.
@@ -165,17 +198,22 @@ class LOTWClient:
                 response.raise_for_status()
 
     def get_dxcc_credit(self, entity:str=None, ac_acct:str=None):
-        """Gets DXCC award account credit, optionally for a specific DXCC Entity Code specified via entity.
+        """Gets DXCC award account credit, optionally for a specific DXCC \
+            Entity Code specified via entity.
 
         Note:
-            This only returns *applied for and granted credit*, not 'presumed' credits.
+            This only returns *applied for and granted credit*, not 'presumed' \
+                credits.
 
         Args:
-            entity (str, optional): dxcc entity number to check for, if a specific entity is desired. Defaults to None.
-            ac_acct (str, optional): award account to check against, if multiple exist for the given account. Defaults to None.
+            entity (str, optional): dxcc entity number to check for, if a \
+                specific entity is desired. Defaults to None.
+            ac_acct (str, optional): award account to check against, if \
+                multiple exist for the given account. Defaults to None.
 
         Raises:
-            RetrievalFailure: A failure to retrieve information from LOTW. Contains the error received from LOTW.
+            RetrievalFailure: A failure to retrieve information from LOTW. \
+                Contains the error received from LOTW.
 
         Returns:
             qspylib.logbook.Logbook: A logbook containing the user's QSOs.
@@ -191,7 +229,8 @@ class LOTWClient:
         with self.session as s:
             response = s.get(self.base_url + dxcc_url, params=params)
             if response.status_code == requests.codes.ok:
-                # lotw lies, and claims an <eoh> will be absent from bad outputs, but it's there, so we'll do something else.
+                # lotw lies, and claims an <eoh> will be absent from bad 
+                # outputs, but it's there, so we'll do something else.
                 if 'ARRL Logbook of the World DXCC QSL Card Report' not in response.text[:46]:
                     raise RetrievalFailure(response.text)
                 else:

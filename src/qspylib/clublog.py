@@ -8,7 +8,8 @@ from .logbook import Logbook
 
 
 class ClubLogClient:
-    """This is a wrapper for the ClubLog API, holding a user's authentication to perform actions on their behalf.
+    """This is a wrapper for the ClubLog API, holding a user's authentication\
+        to perform actions on their behalf.
     """
 
     def __init__(self, email: str, callsign: str, password: str):
