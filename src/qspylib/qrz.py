@@ -10,7 +10,7 @@ from typing import Any
 from urllib.parse import urlparse, parse_qs
 import requests
 import xmltodict
-import adif_io
+#import adif_io
 from .logbook import Logbook
 from ._version import __version__
 
@@ -89,8 +89,9 @@ class QRZLogbookClient:
                                                + html.unescape(response.text))[4],
                                                  strict_parsing=True)
             return QRZLogbookClient.__stringify(self, response_dict["ADIF"])
-        else:
-            response.raise_for_status()
+        
+        #iff we didn't manage to return from a logged in session, raise an error
+        raise response.raise_for_status()
 
     #def fetch_logbook_paged(self, per_page:int=50, option:str=None):
     #
@@ -104,23 +105,23 @@ class QRZLogbookClient:
     #
     #    raise NotImplementedError
 
-    def insert_record(self, qso:adif_io.QSO, option:str=None):
-        """Inserts a single QSO into the logbook corresponding to the\
-        Client's API Key.
+    # def insert_record(self, qso:adif_io.QSO, option:str=None):
+    #     """Inserts a single QSO into the logbook corresponding to the\
+    #     Client's API Key.
 
-        Args:
-            qso (adif_io.QSO): _description_
-            option (str, optional): _description_. Defaults to None.
+    #     Args:
+    #         qso (adif_io.QSO): _description_
+    #         option (str, optional): _description_. Defaults to None.
 
-        Raises:
-            NotImplementedError: _description_
-        """
-        data = {
-            'KEY': self.key,
-            'ACTION': 'INSERT',
-            'OPTION': option
-        }
-        raise NotImplementedError
+    #     Raises:
+    #         NotImplementedError: _description_
+    #     """
+    #     data = {
+    #         'KEY': self.key,
+    #         'ACTION': 'INSERT',
+    #         'OPTION': option
+    #     }
+    #     raise NotImplementedError
 
     def delete_record(self, list_logids:list) -> dict[str, list[str]]:
         """Deletes log records from the logbook corresponding to the\
@@ -153,8 +154,9 @@ class QRZLogbookClient:
                                                + html.unescape(response.text))[4],
                                                  strict_parsing=True)
             return response_dict
-        else:
-            response.raise_for_status()
+
+        #iff we didn't manage to return from a logged in session, raise an error
+        raise response.raise_for_status()
 
     def check_status(self, list_logids:list=None) -> dict[str, list[str]]:
         """Gets the status of a logbook based on the API Key supplied\
@@ -187,8 +189,9 @@ class QRZLogbookClient:
                                                + html.unescape(response.text))[4],
                                                  strict_parsing=True)
             return response_dict
-        else:
-            response.raise_for_status()
+
+        #iff we didn't manage to return from a logged in session, raise an error
+        raise response.raise_for_status()
 
     ### Helpers
 
@@ -221,8 +224,8 @@ class QRZXMLClient:
             timeout (int, optional): Time in seconds to wait for a response.\
                 Defaults to 15.
         """
-        self.username = username,
-        self.password = password,
+        self.username = username
+        self.password = password
         self.agent = agent if agent is not None else 'pyQSP/' + __version__
         self.session_key = None
         self.timeout = timeout
@@ -249,8 +252,8 @@ class QRZXMLClient:
         key = xml_dict["QRZDatabase"]["Session"].get("Key")
         if not key:
             raise QRZInvalidSession()
-        else:
-            self.session_key = key
+
+        self.session_key = key
 
     def _verify_session(self):
         """ Helper -- Verify our session key is still valid."""
@@ -294,7 +297,7 @@ class QRZXMLClient:
                 else:
                     return parsed_response
             else:
-                response.raise_for_status()
+                raise response.raise_for_status()
         #if we didn't manage to return from a logged in session, raise an error
         raise QRZInvalidSession(**{'message':parsed_response['ERROR']} \
                                 if parsed_response.get('ERROR') else {})

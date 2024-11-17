@@ -3,9 +3,14 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """Functions and classes related to querying the eQSL API.
 """
-from .logbook import Logbook
 import requests
+from .logbook import Logbook
 from ._version import __version__
+
+class eQSLError(Exception): #pylint: disable=invalid-name
+    """An error occurred interfacing with eQSL."""
+    def __init__(self, message):
+        super().__init__(message)
 
 # functions that don't require authentication
 
@@ -51,7 +56,7 @@ def verify_eqsl(callsign_from: str, callsign_to: str, qso_band: str,
             elif 'Parameter missing' not in raw_result:
                 return False, raw_result
             else:
-                raise Exception(raw_result)
+                raise eQSLError(raw_result)
         else:
             r.raise_for_status()
 
@@ -61,7 +66,7 @@ def retrieve_graphic(username: str, password: str, callsign_from: str,
                      qso_mode: str, timeout: int = 15):
     """Retrieve the graphic image for a QSO from eQSL.
 
-    Note: 
+    Note:
         Not yet implemented.
 
     Args:
@@ -86,7 +91,7 @@ def retrieve_graphic(username: str, password: str, callsign_from: str,
     raise NotImplementedError
 
 def get_ag_list(timeout: int = 15):
-    """Get a list of Authenticity Guaranteed members. 
+    """Get a list of Authenticity Guaranteed members.
 
     Args:
         timeout (int, optional): Seconds before connection times out. Defaults to 15.
@@ -181,7 +186,7 @@ def get_users_data(callsign: str, timeout: int = 15):
 
 
 # things that require authentication
-class eQSLClient:
+class eQSLClient: #pylint: disable=invalid-name
     """API wrapper for eQSL.cc. This class holds a user's authentication to\
         perform actions on their behalf.
     """
@@ -239,7 +244,7 @@ class eQSLClient:
                 if success_txt in r.text:
                     return r.text[r.text.index('(')+1:r.text.index(')')]
                 else:
-                    raise Exception(r.text)
+                    raise eQSLError(r.text)
 
     def fetch_inbox(self, limit_date_lo:str=None, limit_date_hi:str=None,
                     rcvd_since:str=None, confirmed_only:str=None,
@@ -299,7 +304,7 @@ class eQSLClient:
                 adif_found_txt = 'Your ADIF log file has been built'
                 adif_status = r.text.index(adif_found_txt) if adif_found_txt in r.text else -1
                 if adif_status < 0:
-                    raise Exception('Failed to generate ADIF.')
+                    raise eQSLError('Failed to generate ADIF.')
                 adif_link_start_idx = r.text.index('<LI><A HREF="..') + 15
                 adif_link_end_idx = r.text.index('">.ADI file</A>')
                 adif_link = self.base_url + r.text[adif_link_start_idx:adif_link_end_idx]
@@ -327,7 +332,7 @@ class eQSLClient:
                 adif_found_txt = 'Your ADIF log file has been built'
                 adif_status = r.text.index(adif_found_txt) if adif_found_txt in r.text else -1
                 if adif_status < 0:
-                    raise Exception('Failed to generate ADIF.')
+                    raise eQSLError('Failed to generate ADIF.')
                 adif_link_start_idx = r.text.index('<LI><A HREF="..') + 15
                 adif_link_end_idx = r.text.index('">.ADI file</A>')
                 adif_link = self.base_url + r.text[adif_link_start_idx:adif_link_end_idx]
