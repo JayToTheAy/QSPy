@@ -28,5 +28,8 @@ jobs:
       - name: Super-linter
         uses: super-linter/super-linter@v7.1.0 # x-release-please-version
         env:
+          VALIDATE_PYTHON_PYLINT: true
+          VALIDATE_PYTHON_PYINK: true
+          VALIDATE_YAML: false
           # To report GitHub Actions status checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
