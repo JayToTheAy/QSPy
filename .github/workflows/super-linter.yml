@@ -29,6 +29,7 @@ jobs:
         uses: super-linter/super-linter@v7.1.0 # x-release-please-version
         env:
           VALIDATE_PYTHON_PYLINT: true
+          PYTHON_PYLINT_CONFIG_FILE: .pylintrc
           #VALIDATE_PYTHON_PYINK: true
           # To report GitHub Actions status checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
