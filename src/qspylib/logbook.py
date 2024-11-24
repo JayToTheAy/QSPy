@@ -5,7 +5,6 @@
 """
 import adif_io
 
-# classes
 
 class QSO:
     """A hambaseio QSO obj. Contains simple info on a QSO.
@@ -18,8 +17,16 @@ class QSO:
         time_on (str): time start of QSO
         qsl_rcvd (str): if QSO has been confirmed
     """
-    def __init__(self, their_call:str, band:str, mode:str, qso_date:str,
-                 time_on:str, qsl_rcvd:str='N'):
+
+    def __init__(
+        self,
+        their_call: str,
+        band: str,
+        mode: str,
+        qso_date: str,
+        time_on: str,
+        qsl_rcvd: str = "N",
+    ):
         """Initializes a QSO object.
 
         Args:
@@ -44,11 +51,16 @@ class QSO:
 
     def __eq__(self, other):
         if isinstance(other, QSO):
-            if self.their_call == other.their_call and self.band == other.band\
-                and self.mode == other.mode and self.qso_date\
-                == other.qso_date and self.time_on == other.time_on:
+            if (
+                self.their_call == other.their_call
+                and self.band == other.band
+                and self.mode == other.mode
+                and self.qso_date == other.qso_date
+                and self.time_on == other.time_on
+            ):
                 return True
         return False
+
 
 class Logbook:
     """A Logbook has both an adi field, holding all fields parsed from an .adi\
@@ -91,8 +103,12 @@ class Logbook:
 
     def __eq__(self, other):
         if isinstance(other, Logbook):
-            if self.callsign == other.callsign and self.adi == other.adi and\
-                self.header == other.header and self.log == other.log:
+            if (
+                self.callsign == other.callsign
+                and self.adi == other.adi
+                and self.header == other.header
+                and self.log == other.log
+            ):
                 return True
         return False
 
@@ -121,8 +137,8 @@ class Logbook:
         self.log.remove(logified_qso)
         self.adi.remove(contact)
 
-# functions of the module
 
+# region Module Functions
 def qso_from_adi(contact: adif_io.QSO):
     """Transforms an adif_io.QSO object into a qspylib.logbook.QSO object.
 
@@ -132,9 +148,20 @@ def qso_from_adi(contact: adif_io.QSO):
     Returns:
         qspylib.logbook.QSO: a qspylib QSO object
     """
-    qsl_rcvd = contact.get('QSL_RCVD')
-    qrz_qsl_dte = contact.get('app_qrzlog_qsldate')
-    eqsl_qsl_rcvd = contact.get('eqsl_qsl_rcvd')
-    qso_confirmed = 'Y' if qsl_rcvd == 'Y' or qrz_qsl_dte or eqsl_qsl_rcvd == 'Y' else 'N'
-    return QSO(contact['CALL'], contact['BAND'], contact['MODE'],
-               contact['QSO_DATE'], contact['TIME_ON'], qso_confirmed)
+    qsl_rcvd = contact.get("QSL_RCVD")
+    qrz_qsl_dte = contact.get("app_qrzlog_qsldate")
+    eqsl_qsl_rcvd = contact.get("eqsl_qsl_rcvd")
+    qso_confirmed = (
+        "Y" if qsl_rcvd == "Y" or qrz_qsl_dte or eqsl_qsl_rcvd == "Y" else "N"
+    )
+    return QSO(
+        contact["CALL"],
+        contact["BAND"],
+        contact["MODE"],
+        contact["QSO_DATE"],
+        contact["TIME_ON"],
+        qso_confirmed,
+    )
+
+
+# endregion
