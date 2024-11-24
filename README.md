@@ -35,8 +35,8 @@ This will generate a .whl and tar.gz, which you can then install locally.
 As of v1.0.0:
 
 * The LotW module is, in theory, finished -- you can download QSOs in bulk or by criteria, check DXCC credit, get a list of users and their date of last upload, and upload a log.
-* The eQSL module has most of the functionality of eQSL's API, but is incredibly unpolished -- at present, you can fetch inboxes and outboxes, get AG lists, get member lists, get last upload data for users, and verify an eQSL.
-* The QRZ module is mostly done, but has a few holes; for logs, we currently support fetching logbooks, checking logbook statuses, deleting records. For the XML API, we support looking up a callsign's data and looking up a DXCC's data.
+* The eQSL module has most of the functionality of eQSL's API, but is a bit unpolished -- at present, you can fetch inboxes and outboxes, get AG lists, get member lists, get last upload data for users, verify an eQSL, and retrieve the eQSL card graphic for a QSL.
+* The QRZ module is mostly done; for logs, we currently support fetching logbooks, checking logbook statuses, and inserting and deleting records. For the XML API, we support looking up a callsign's data and looking up a DXCC's data.
 * The ClubLog module only supports grabbing logbooks from ClubLog at the moment.
 
 ## How do I use it?

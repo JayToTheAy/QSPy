@@ -61,7 +61,7 @@ class QSO:
                 return True
         return False
 
-    def qso_to_adi_io_qso(self) -> adif_io.QSO:
+    def qso_to_adif_io_qso(self) -> adif_io.QSO:
         """Converts a QSO object into an adif.io QSO object.
 
         Returns:
