@@ -26,16 +26,16 @@ QSPyLib
    :alt: PyPI - License
 
 
-``qsyplib`` is a bundle of API wrappers for various amateur radio-related websites, including QRZ, LOTW, eQSL, and ClubLog.
+``qsyplib`` is a bundle of API wrappers for various amateur radio-related sites, including QRZ, LOTW, eQSL, and ClubLog.
 
-It is currently in development and should be considered unstable version-to-version while the version number is still 0.x.x.
+QSPyLib is in active development; that said, major version numbers should maintain API stability. If you need absolute stability of the API, fix your version against the major.
 
 Issues and pull requests are welcome, and should be made on the [GitHub repository](https://github.com/JayToTheAy/QSPy).
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-   
+
    modules
    qspylib
    examples
