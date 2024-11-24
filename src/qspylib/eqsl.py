@@ -7,14 +7,15 @@ import requests
 from .logbook import Logbook
 from ._version import __version__
 
+# region Exceptions
 class eQSLError(Exception): #pylint: disable=invalid-name
     """An error occurred interfacing with eQSL."""
     def __init__(self, message="An error occurred interfacing with eQSL"):
         super().__init__(message)
+# endregion
 
-# functions that don't require authentication
-
-def verify_eqsl(callsign_from: str, callsign_to: str, qso_band: str,
+# region Module Functions
+def verify_eqsl(callsign_from: str, callsign_to: str, qso_band: str, #pylint: disable=R0913
                 qso_mode: str = None, qso_date: str = None, timeout: int = 15):
     """Verify a QSL with eQSL.
 
@@ -48,17 +49,17 @@ def verify_eqsl(callsign_from: str, callsign_to: str, qso_band: str,
     }
 
     with requests.Session() as s:
-        r = s.get(url, params=params, headers={'user-agent': 'pyQSP/'
+        response = s.get(url, params=params, headers={'user-agent': 'pyQSP/'
                                                + __version__}, timeout=timeout)
-        if r.status_code == requests.codes.ok:
-            raw_result = r.text
+        if response.status_code == requests.codes.ok:
+            raw_result = response.text
             # TO-DO: make this a case statement
             if 'Result - QSO on file' in raw_result:
                 return True, raw_result
             if 'Parameter missing' not in raw_result:
                 return False, raw_result
             raise eQSLError(raw_result)
-        raise r.raise_for_status()
+        raise response.raise_for_status()
 
 def retrieve_graphic(username: str, password: str, callsign_from: str,
                      qso_year: str, qso_month: str, qso_day: str,
@@ -108,13 +109,13 @@ def get_ag_list(timeout: int = 15):
     url = "https://www.eqsl.cc/qslcard/DownloadedFiles/AGMemberList.txt"
 
     with requests.Session() as s:
-        r = s.get(url, headers={'user-agent': 'pyQSP/' + __version__},
+        response = s.get(url, headers={'user-agent': 'pyQSP/' + __version__},
                   timeout=timeout)
-        if r.status_code == requests.codes.ok:
+        if response.status_code == requests.codes.ok:
             result_list = []
-            result_list += r.text.split('\r\n')
+            result_list += response.text.split('\r\n')
             return set(result_list[1:-1]), str(result_list[0])
-        raise r.raise_for_status()
+        raise response.raise_for_status()
 
 def get_ag_list_dated(timeout: int = 15):
     """Get a list of Authenticity Guaranteed eQSL members with the date of\
@@ -134,17 +135,17 @@ def get_ag_list_dated(timeout: int = 15):
     url = "https://www.eqsl.cc/qslcard/DownloadedFiles/AGMemberListDated.txt"
 
     with requests.Session() as s:
-        r = s.get(url, headers={'user-agent': 'pyQSP/' + __version__},\
+        response = s.get(url, headers={'user-agent': 'pyQSP/' + __version__},\
                   timeout=timeout)
-        if r.status_code == requests.codes.ok:
-            result_list = r.text.split('\r\n')
+        if response.status_code == requests.codes.ok:
+            result_list = response.text.split('\r\n')
             loc, header = result_list[1:-1], str(result_list[0])
             dict_calls = {}
             for pair in loc:
                 call, date = pair.split(', ')
                 dict_calls[call] = date
             return dict_calls, header
-        raise r.raise_for_status()
+        raise response.raise_for_status()
 
 def get_full_member_list(timeout: int = 15):
     """Get a list of all members of QRZ.
@@ -164,15 +165,15 @@ def get_full_member_list(timeout: int = 15):
     url = "https://www.eqsl.cc/DownloadedFiles/eQSLMemberList.csv"
 
     with requests.Session() as s:
-        r = s.get(url, timeout=timeout)
-        if r.status_code == requests.codes.ok:
-            result_list = r.text.split('\r\n')[1:-1]
+        response = s.get(url, timeout=timeout)
+        if response.status_code == requests.codes.ok:
+            result_list = response.text.split('\r\n')[1:-1]
             dict_calls = {}
             for row in result_list:
                 data = row.split(',')
                 dict_calls[data[0]] = data[1:]
             return dict_calls
-        raise r.raise_for_status()
+        raise response.raise_for_status()
 
 def get_users_data(callsign: str):
     """Get a specific user's data from the full member list.
@@ -189,9 +190,9 @@ def get_users_data(callsign: str):
     """
     dict_users: dict = get_full_member_list()
     return dict_users.get(callsign)
+# endregion
 
-
-# things that require authentication
+# region eQSL API Wrapper
 class eQSLClient: #pylint: disable=invalid-name
     """API wrapper for eQSL.cc. This class holds a user's authentication to\
         perform actions on their behalf.
@@ -253,10 +254,10 @@ class eQSLClient: #pylint: disable=invalid-name
                 raise eQSLError(r.text)
             raise r.raise_for_status()
 
-    def fetch_inbox(self, limit_date_lo:str=None, limit_date_hi:str=None,
+    def fetch_inbox(self, limit_date_lo:str=None, limit_date_hi:str=None, #pylint: disable=R0914,R0913
                     rcvd_since:str=None, confirmed_only:str=None,
                     unconfirmed_only:str=None, archive:str=None,
-                    ham_only:str=None):
+                    ham_only:str=None) -> Logbook:
         """Fetches INCOMING QSOs, from the user's eQSL Inbox.
 
         Args:
@@ -322,6 +323,41 @@ class eQSLClient: #pylint: disable=invalid-name
                 raise r.raise_for_status()
             raise r.raise_for_status()
 
+    def fetch_inbox_qsls(self, limit_date_lo:str=None, limit_date_hi:str=None, #pylint: disable = R0913
+                    rcvd_since:str=None, archive:str=None,
+                    ham_only:str=None) -> Logbook:
+        """Fetches INCOMING QSLs, from the user's eQSL Inbox.
+
+        limit_date_lo (str, optional): Earliest QSO date to download\
+                (oddly, in MM/DD/YYYY format with escape code 2F for slashes),\
+                optionally append HH:MM otherwise the default is 00:00.\
+                Defaults to None.
+            limit_date_hi (str, optional): Latest QSO date to download\
+                (oddly, in MM/DD/YYYY format with escape code 2F), optionally\
+                append HH:MM otherwise the default is 23:59 to include the\
+                entire day.\
+                Defaults to None.
+            rcvd_since (str, optional): (YYYYMMDDHHMM) Everything that was\
+                entered into the database on or after this date/time (Valid\
+                range 01/01/1900 - 12/31/2078).\
+                Defaults to None.
+            archive (str, optional): 1 for Archived records ONLY; 0 for Inbox\
+                (non-archived) ONLY; omit this parameter to retrieve ALL\
+                records in Inbox and Archive.\
+                Defaults to None.
+            ham_only (str, optional): anything, filters out all SWL contacts.\
+                Defaults to None.
+
+        Raises:
+            eQSLError: An error occurred interfacing with eQSL.
+            HTTPError: An error occurred while trying to make a connection.
+
+        Returns:
+            qspylib.logbook.Logbook: A logbook containing the user's QSOs.
+        """
+        return self.fetch_inbox(limit_date_lo, limit_date_hi, rcvd_since, 'Y',
+                                None, archive, ham_only)
+
     def fetch_outbox(self):
         """Fetches OUTGOING QSOs, from the user's eQSL Outbox.
 
@@ -348,3 +384,4 @@ class eQSLClient: #pylint: disable=invalid-name
                     return Logbook(self.callsign, adif_response.text)
                 raise r.raise_for_status()
             raise r.raise_for_status()
+# endregion
