@@ -17,7 +17,7 @@ authors = [
 ]
 description = "A set of API wrappers for different amateur radio websites, including LotW, QRZ, eQSL, and ClubLog"
 readme = "README.md"
-keywords = ["QRZ", "LOTW", "eQSL", "API", "amateur radio"]
+keywords = ["QRZ", "LOTW", "eQSL", "ClubLog", "API", "amateur radio"]
 classifiers = [
     "Programming Language :: Python :: 3.9",
 	"Programming Language :: Python :: 3.10",
@@ -26,7 +26,7 @@ classifiers = [
 	"Programming Language :: Python :: 3.13",
     "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
     "Operating System :: OS Independent",
-    "Development Status :: 2 - Pre-Alpha"
+    "Development Status :: 5 - Production/Stable"
 ]
 
 [project.urls]

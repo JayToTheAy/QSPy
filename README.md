@@ -8,7 +8,7 @@
 
 QSPyLib is a bundle of API wrappers for various amateur radio-related sites, including QRZ, LOTW, eQSL, and ClubLog.
 
-It is currently in development and should be considered unstable version-to-version while the version number is still 0.x.x.
+QSPyLib is in active development; that said, major version numbers should maintain API stability. If you need absolute stability of the API, fix your version against the major.
 
 Issues and pull requests are welcome, and should be made on the [GitHub repository](https://github.com/jaytotheay/qspy).
 
@@ -32,12 +32,12 @@ This will generate a .whl and tar.gz, which you can then install locally.
 
 ## What works right now?
 
-As of v0.0.1:
+As of v1.0.0:
 
-* The LotW module is, in theory, finished -- no doubt something will come up about how it's not actually practical and needs more work.
-* The eQSL module has most of the functionality of eQSL's API, but is incredibly unpolished and needs more work.
-* The QRZ module exists; the Logbook API is currently only supported for FETCH operations, and the XML Interface is not supported yet.
-* The ClubLog module is on-hold pending the ready-status of the other modules.
+* The LotW module is, in theory, finished -- you can download QSOs in bulk or by criteria, check DXCC credit, get a list of users and their date of last upload, and upload a log.
+* The eQSL module has most of the functionality of eQSL's API, but is incredibly unpolished -- at present, you can fetch inboxes and outboxes, get AG lists, get member lists, get last upload data for users, and verify an eQSL.
+* The QRZ module is mostly done, but has a few holes; for logs, we currently support fetching logbooks, checking logbook statuses, deleting records. For the XML API, we support looking up a callsign's data and looking up a DXCC's data.
+* The ClubLog module only supports grabbing logbooks from ClubLog at the moment.
 
 ## How do I use it?
 
@@ -60,8 +60,8 @@ Other functions of APIs are generally available, like checking if an eQSL is ver
 
 ```py
 from qspylib import eqsl
-confirmed, raw_result = eqsl.verify_eqsl('N5UP', 'TEST', '160m', 'SSB', '01/01/2000')
+confirmed, raw_result = eqsl.eQSLClient.verify_eqsl('N5UP', 'TEST', '160m', 'SSB', '01/01/2000')
 ```
-This will return a tuple; here, `confirmed` will be False, since this QSO is not verified on eQSL, and `raw_result` will contain any extra information eQSL provides, for instance, if it's Authenticity Guaranteed.
+This will return a tuple; here, `confirmed` will be False, since this QSO is not verified on eQSL, and `raw_result` will contain any extra information eQSL provides, for instance, if it's Authenticity Guaranteed. Note that verify_eqsl is a static method of the eQSLClient class, and can be called either from an eQSLClient object, or directly from the class.
 
 Modules, functions, and classes are documented in-code via docstrings, and you can learn more by reading those docstrings; you can also read the [Read the Docs](http://qspylib.readthedocs.io/) listings for a visually pleasing guide on what the docstrings say.
