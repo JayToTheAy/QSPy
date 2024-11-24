@@ -401,7 +401,7 @@ class eQSLClient:  # pylint: disable=invalid-name
             )
             if response.status_code == requests.codes.ok:
                 raw_result = response.text
-                # TO-DO: make this a case statement
+
                 if "Result - QSO on file" in raw_result:
                     return True, raw_result
                 if "Parameter missing" not in raw_result:

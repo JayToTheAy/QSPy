@@ -61,6 +61,36 @@ class QSO:
                 return True
         return False
 
+    def qso_to_adi_io_qso(self) -> adif_io.QSO:
+        """Converts a QSO object into an adif.io QSO object.
+
+        Returns:
+            adif_io.QSO: an adif.io QSO object
+        """
+        return adif_io.QSO(
+            {
+                "CALL": self.their_call,
+                "BAND": self.band,
+                "MODE": self.mode,
+                "QSO_DATE": self.qso_date,
+                "TIME_ON": self.time_on,
+                "QSL_RCVD": self.qsl_rcvd,
+            }
+        )
+
+    def qso_to_adif_string(self) -> str:
+        """Converts a QSO object into an adif formatted string.
+
+        Returns:
+            str: an adif formatted string
+        """
+        return f"<CALL:{len(self.their_call)}>{self.their_call}\
+            <BAND:{len(self.band)}>{self.band}\
+            <MODE:{len(self.mode)}>{self.mode}\
+            <QSO_DATE:{len(self.qso_date)}>{self.qso_date}\
+            <TIME_ON:{len(self.time_on)}>{self.time_on}\
+            <QSL_RCVD:{len(self.qsl_rcvd)}>{self.qsl_rcvd}"
+
 
 class Logbook:
     """A Logbook has both an adi field, holding all fields parsed from an .adi\
