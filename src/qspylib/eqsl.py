@@ -68,7 +68,7 @@ class eQSLClient:  # pylint: disable=invalid-name
 
     # actual GETs
 
-    def get_last_upload_date(self):
+    def get_last_upload_date(self) -> datetime:
         """Gets last upload date for the logged in user.
 
         Raises:
@@ -76,8 +76,8 @@ class eQSLClient:  # pylint: disable=invalid-name
             HTTPError: An error occurred while trying to make a connection.
 
         Returns:
-            str: date of last upload for the active user. Date is formatted:\
-                DD-MMM-YYYY at HH:mm UTC
+            datetime.datetime: datetime of last upload for the active user.\
+                Contains: Year, Month, Date, Hour, Minute (UTC).
         """
         with self.session as s:
             response = s.get(
@@ -86,9 +86,10 @@ class eQSLClient:  # pylint: disable=invalid-name
             if response.status_code == requests.codes.ok:
                 success_txt = "Your last ADIF upload was"
                 if success_txt in response.text:
-                    return response.text[
+                    time_str = response.text[
                         response.text.index("(") + 1 : response.text.index(")")
                     ]
+                    return datetime.strptime(time_str, "%d-%b-%Y at %H:%M UTC")
                 raise eQSLError(response.text)
             raise response.raise_for_status()
 

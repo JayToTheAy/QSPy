@@ -142,6 +142,30 @@ eQSL provides for confirming that a QSL is confirmed -- if it was confirmed on e
 
 In current versions of qspylib, parsing raw_result for additional information, such as authenticity guaranteed status or the error cause, is left as an exercise for the reader.
 
+Retrieving an eQSL Graphic
+**************************
+eQSL provides for retrieving the graphic for the digital QSL card corresponding to a QSO. Note that they request you only do at most, six requests per minute.
+
+.. code-block:: python
+
+	"This example demonstrates retrieving an eQSL graphic for a given QSO and displaying it using PIL."
+
+	>>> import qspylib
+	>>> from datetime import datetime
+	>>> from PIL import Image
+	>>> eqsl_client = qspylib.eqsl.eQSLClient("CAL7SIGN", "notarealpassword")
+	>>> inbox = eqsl_client.fetch_inbox_qsls()
+	>>> str(inbox.adi[12])
+	'<QSO_DATE:8>20230101 <TIME_ON:4>0730 <CALL:5>TE5T <MODE:3>FT8 <APP_EQSL_AG:1>Y <BAND:3>20M <EQSL_QSLRDATE:8>20230101 <EQSL_QSL_RCVD:1>Y <GRIDSQUARE:6>EM12em <QSL_SENT:1>Y <QSL_SENT_VIA:1>E <RST_SENT:3>+00 <EOR>\n'
+	>>> qso_datetime = datetime(2023, 1, 1, 7, 30)
+	>>> image_data = eqsl_client.retrieve_graphic("te5t", qso_datetime, "20m", "FT8")
+	>>> image_data
+	<_io.BytesIO object at 0x0000000000000000>
+	>>> image = Image.open(image_data)
+	>>> image
+	<PIL.PngImagePlugin.PngImageFile image mode=RGB size=528x336 at 0x0000000000000000>
+	>>> image.show() # this will open the actual image file, showing you the image.
+
 Looking up a callsign on QRZ
 ****************************
 QRZ allows an authenticated user to lookup certain information about a QRZ user. This information will be returned by qspylib as a dictionary that can be parsed, sharing a structure with the XML tree returned by QRZ.
