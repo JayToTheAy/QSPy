@@ -89,7 +89,7 @@ class eQSLClient:  # pylint: disable=invalid-name
     def fetch_inbox(
         self,
         limit_date_lo: str = None,
-        limit_date_hi: str = None,  # pylint: disable=R0914,R0913
+        limit_date_hi: str = None,
         rcvd_since: str = None,
         confirmed_only: str = None,
         unconfirmed_only: str = None,

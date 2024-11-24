@@ -25,7 +25,7 @@ class QRZInvalidSession(Exception):
 
     def __init__(
         self,
-        message="Got no session key back. This session is \
+        message="Got no session key back. This session is\
                 invalid.",
     ):
         self.message = message
@@ -297,7 +297,7 @@ class QRZXMLClient:
             )
             if response.status_code == requests.codes.ok:
                 parsed_response = xmltodict.parse(response.text)
-                if not parsed_response.get("Key"):
+                if not parsed_response["QRZDatabase"]["Session"].get("Key"):
                     self._initiate_session()
                     num_retries += 1
                 else:
@@ -336,7 +336,7 @@ class QRZXMLClient:
             )
             if response.status_code == requests.codes.ok:
                 parsed_response = xmltodict.parse(response.text)
-                if not parsed_response.get("Key"):
+                if not parsed_response["QRZDatabase"]["Session"].get("Key"):
                     self._initiate_session()
                     num_retries += 1
                 else:
