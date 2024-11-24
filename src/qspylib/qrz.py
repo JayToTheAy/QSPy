@@ -144,13 +144,24 @@ class QRZLogbookClient:
             match_str = response_dict.get("RESULT")[0]
 
             if match_str == "OK":
-                return {"RESULT" : response_dict.get("RESULT")[0], "COUNT" : response_dict.get("COUNT")[0]}
+                return {
+                    "RESULT": response_dict.get("RESULT")[0],
+                    "COUNT": response_dict.get("COUNT")[0],
+                }
             elif match_str == "PARTIAL":
-                return {"RESULT" : response_dict.get("RESULT")[0], "COUNT" : response_dict.get("COUNT")[0], "LOGIDS" : QRZLogbookClient.convert_logids_to_list(response_dict.get("LOGIDS"))}
+                return {
+                    "RESULT": response_dict.get("RESULT")[0],
+                    "COUNT": response_dict.get("COUNT")[0],
+                    "LOGIDS": QRZLogbookClient.convert_logids_to_list(
+                        response_dict.get("LOGIDS")
+                    ),
+                }
             elif match_str == "FAIL":
                 raise QRZLogbookError(response_dict.get("REASON")[0])
             else:
-                raise QRZLogbookError("An invalid state was reached with no known error.")
+                raise QRZLogbookError(
+                    "An invalid state was reached with no known error."
+                )
 
         else:
             raise response.raise_for_status()
@@ -188,9 +199,13 @@ class QRZLogbookClient:
             match_str = response_dict.get("RESULT")[0]
 
             if match_str == "OK":
-                return QRZLogbookClient.convert_logids_to_list(response_dict["LOGID"][0])
+                return QRZLogbookClient.convert_logids_to_list(
+                    response_dict["LOGID"][0]
+                )
             elif match_str == "REPLACE":
-                return QRZLogbookClient.convert_logids_to_list(response_dict["LOGID"][0])
+                return QRZLogbookClient.convert_logids_to_list(
+                    response_dict["LOGID"][0]
+                )
             elif match_str == "FAIL":
                 raise QRZLogbookError(str(response_dict.get("REASON")[0]))
             else:
@@ -217,7 +232,16 @@ class QRZLogbookClient:
             field by QRZ's API, e.g. DXCC count is 'DXCC_COUNT', confirmed\
             is 'CONFIRMED', etc.
         """
-        data = {"KEY": self.key, "ACTION": "STATUS", "LOGIDS": ",".join(list_logids)}
+        if list_logids is None:
+            data = {"KEY": self.key, "ACTION": "STATUS"}
+        else:
+            data = {
+                "KEY": self.key,
+                "ACTION": "STATUS",
+                "LOGIDS": ",".join(
+                    QRZLogbookClient.convert_logids_to_list(list_logids)
+                ),
+            }
 
         response = requests.post(
             self.base_url, data=data, headers=self.headers, timeout=self.timeout
@@ -227,11 +251,13 @@ class QRZLogbookClient:
                 urlparse("ws://a.a/?" + html.unescape(response.text))[4],
                 strict_parsing=True,
             )
-            # check our key wasn't bad
-            if response_dict.get("RESULT") == "OK":
-                return QRZLogbookClient.__stringify(self, response_dict["ADIF"])
+            if response_dict.get("RESULT")[0] == "OK":
+                result = {}
+                for kvp in response_dict.items():
+                    result[kvp[0]] = kvp[1][0]
+                return result
             else:
-                raise QRZLogbookError(response_dict.get("REASON"))
+                raise QRZLogbookError(response_dict.get("REASON")[0])
         else:
             raise response.raise_for_status()
 
@@ -243,7 +269,7 @@ class QRZLogbookClient:
         return Logbook(self.key, log_adi)
 
     @staticmethod
-    def convert_logids_to_list(logids:str) -> list:
+    def convert_logids_to_list(logids: str) -> list:
         """When QRZ returns a list of logids, they are returned as a weird, gross\
         string. This parses that and returns an actual list of the integers.
 
@@ -253,9 +279,8 @@ class QRZLogbookClient:
         Returns:
             list: actual list of integer logids
         """
-        regex =  r"\d+"
+        regex = r"\d+"
         return findall(regex, logids)
-
 
 
 # endregion
@@ -377,7 +402,8 @@ class QRZXMLClient:
         """Looks up a DXCC by prefix or DXCC number.
 
         Args:
-            dxcc (str): DXCC or prefix to lookup
+            dxcc (str): DXCC or prefix to lookup. Note that callsigns must be\
+                uppercase, or QRZ won't recognize it.
 
         Raises:
             HTTPError: An error occurred trying to make a connection.
