@@ -176,15 +176,16 @@ class QRZLogbookClient:
                 urlparse("ws://a.a/?" + html.unescape(response.text))[4],
                 strict_parsing=True,
             )
-            match response_dict.get("RESULT"):
-                case "OK":
-                    return str(response_dict["LOGID"])
-                case "REPLACE":
-                    return "REPLACED; " + str(response_dict["LOGID"])
-                case "FAIL":
-                    raise QRZLogbookError(str(response_dict.get("REASON")))
-                case _:
-                    raise QRZLogbookError("Unknown error occurred.")
+            match = response_dict.get("RESULT")
+
+            if match == "OK":
+                return str(response_dict["LOGID"])
+            elif match == "REPLACE":
+                return "REPLACED; " + str(response_dict["LOGID"])
+            elif match == "FAIL":
+                raise QRZLogbookError(str(response_dict.get("REASON")))
+            else:
+                raise QRZLogbookError("Unknown error occurred.")
         else:
             raise response.raise_for_status()
 
