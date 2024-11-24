@@ -36,8 +36,10 @@ As of v1.0.0:
 
 * The LotW module is, in theory, finished -- you can download QSOs in bulk or by criteria, check DXCC credit, get a list of users and their date of last upload, and upload a log.
 * The eQSL module has most of the functionality of eQSL's API, but is a bit unpolished -- at present, you can fetch inboxes and outboxes, get AG lists, get member lists, get last upload data for users, verify an eQSL, and retrieve the eQSL card graphic for a QSL.
-* The QRZ module is mostly done; for logs, we currently support fetching logbooks, checking logbook statuses, and inserting and deleting records. For the XML API, we support looking up a callsign's data and looking up a DXCC's data.
+* The QRZ module is done; for logs, we support fetching logbooks, checking logbook statuses, and inserting and deleting records. For the XML API, we support looking up a callsign's data and looking up a DXCC's data.
 * The ClubLog module only supports grabbing logbooks from ClubLog at the moment.
+
+Everything has been tested to work when done "correctly" and simply; no doubt some edge case will pop up, or some failure state won't throw a good error. Please open an issue for *any* problems you come across, no matter how minor, even if it's just an exception that isn't descriptive.
 
 ## How do I use it?
 
