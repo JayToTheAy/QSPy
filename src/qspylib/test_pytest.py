@@ -10,7 +10,7 @@ import pytest
 import qspylib.logbook
 from qspylib import eqsl
 from qspylib import lotw
-# from qspylib import qrz
+from qspylib import qrz
 
 
 #################
@@ -207,6 +207,15 @@ def test_get_user_data():
 # qrz tests #
 #############
 
-# def test_qrz_xml_with_invalid_key():
-#    log_obj = qrz.QRZLogbookAPI('aaaaaaaaaaaaa')
-#    log = log_obj.fetch_logbook()
+
+def test_qrz_xml_with_invalid_login():
+    """Test a bad login to the QRZ XML API."""
+    with pytest.raises(qrz.QRZInvalidSessionError):
+        qrz.QRZXMLClient("badusername", "badpassword")
+
+
+def test_qrz_logbook_with_invalid_key():
+    """Test a bad login to the QRZ Logbook API."""
+    with pytest.raises(qrz.QRZLogbookError):
+        qrz_logbook_obj = qrz.QRZLogbookClient("badkeythatisnotreal")
+        qrz_logbook_obj.fetch_logbook()
