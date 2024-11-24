@@ -1,1 +1,2 @@
-__version__ = '0.0.1dev0'
+"""unified version string"""
+__version__ = '1.0.0a1'

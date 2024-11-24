@@ -1,12 +1,34 @@
 # QSPyLib
 ![Python Package Build Action Status](https://github.com/JayToTheAy/QSPy/actions/workflows/python-package.yml/badge.svg)
-[![Documentation Status](https://readthedocs.org/projects/qspylib/badge/?version=latest)](https://qspylib.readthedocs.io/en/latest/?badge=latest)
+![Documentation Status](https://readthedocs.org/projects/qspylib/badge/?version=latest)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/qspylib)
+![PyPI - Version](https://img.shields.io/pypi/v/qspylib)
+![PyPI - Wheel](https://img.shields.io/pypi/wheel/qspylib)
+![PyPI - License](https://img.shields.io/pypi/l/qspylib)
 
-QSPyLib is a bundle of API wrappers for various amateur radio-related websites, including QRZ, LOTW, eQSL, and ClubLog.
+QSPyLib is a bundle of API wrappers for various amateur radio-related sites, including QRZ, LOTW, eQSL, and ClubLog.
 
 It is currently in development and should be considered unstable version-to-version while the version number is still 0.x.x.
 
 Issues and pull requests are welcome, and should be made on the [GitHub repository](https://github.com/jaytotheay/qspy).
+
+## How do I install it?
+
+The latest stable* version of QSPyLib is available on PyPI, and can be installed by just running
+
+```bash
+py -m pip install qspylib
+```
+
+This release should match what is on the GitHub repository under a corresponding tagged release.
+
+To build the most recent source code (which isn’t necessarily stable – see the build test status), you can download the source code from GitHub, navigate to the directory, and run:
+
+```py
+py -m build
+```
+
+This will generate a .whl and tar.gz, which you can then install locally.
 
 ## What works right now?
 
@@ -21,7 +43,7 @@ As of v0.0.1:
 
 Documentation of all functions and classes, including examples, is available at the ReadTheDocs listing for this project:
 
-http://qspylib.readthedocs.io/
+<http://qspylib.readthedocs.io/>
 
 A quick example of pulling a Logbook from LOTW:
 
@@ -30,7 +52,9 @@ from qspylib import lotw
 LOTWAccount = lotw.LOTWClient("callsign", "password")
 logbook = LOTWClient.fetch_logbook()
 ```
-This will give you a `Logbook` object, which contains a list of QSO objects and a parsed, usable adif_io log. The adif_io log property contains all the ADIF info that LOTW outputs (and likewise for other logging sites); the built-in log property of a `Logbook` object contains only some limited information, like callsign, band, mode, date, time, and QSL status from the originating site (which is a little handy as a single-reference for if a QSO is a QSL, since different sites use different, extra ADIF fields to express being QSL'd on their platform.)
+This will give you a `Logbook` object, which contains a list of QSO objects and a parsed, usable adif_io log.
+The adif_io log property contains all the ADIF info that LOTW outputs (and likewise for other logging sites).
+The built-in log property of a `Logbook` object contains only some limited information, like callsign, band, mode, date, time, and QSL status from the originating site (which is a little handy as a single-reference for if a QSO is a QSL, since different sites use different, extra ADIF fields to express being QSL'd on their platform.)
 
 Other functions of APIs are generally available, like checking if an eQSL is verified:
 
