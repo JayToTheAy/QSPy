@@ -357,9 +357,10 @@ class LOTWClient:
             tuple[str, str]: Tuple containing the date and time, respectively.
         """
         date, time = None, None
-        date = dt.strftime("%Y-%m-%d")
-        if ":" in dt:
+        if dt is not None:
+            date = dt.strftime("%Y-%m-%d")
             time = dt.strftime("%H:%M:%S")
+            print("got here")
 
         return date, time
 

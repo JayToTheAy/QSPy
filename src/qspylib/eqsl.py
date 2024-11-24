@@ -3,6 +3,8 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """Functions and classes related to querying the eQSL API.
 """
+from datetime import datetime
+from io import BytesIO
 import requests
 from .logbook import Logbook
 from ._version import __version__
@@ -66,7 +68,7 @@ class eQSLClient:  # pylint: disable=invalid-name
 
     # actual GETs
 
-    def get_last_upload_date(self):
+    def get_last_upload_date(self) -> datetime:
         """Gets last upload date for the logged in user.
 
         Raises:
@@ -74,22 +76,27 @@ class eQSLClient:  # pylint: disable=invalid-name
             HTTPError: An error occurred while trying to make a connection.
 
         Returns:
-            str: date of last upload for the active user. Date is formatted:\
-                DD-MMM-YYYY at HH:mm UTC
+            datetime.datetime: datetime of last upload for the active user.\
+                Contains: Year, Month, Date, Hour, Minute (UTC).
         """
         with self.session as s:
-            r = s.get(self.base_url + "DisplayLastUploadDate.cfm", timeout=self.timeout)
-            if r.status_code == requests.codes.ok:
+            response = s.get(
+                self.base_url + "DisplayLastUploadDate.cfm", timeout=self.timeout
+            )
+            if response.status_code == requests.codes.ok:
                 success_txt = "Your last ADIF upload was"
-                if success_txt in r.text:
-                    return r.text[r.text.index("(") + 1 : r.text.index(")")]
-                raise eQSLError(r.text)
-            raise r.raise_for_status()
+                if success_txt in response.text:
+                    time_str = response.text[
+                        response.text.index("(") + 1 : response.text.index(")")
+                    ]
+                    return datetime.strptime(time_str, "%d-%b-%Y at %H:%M UTC")
+                raise eQSLError(response.text)
+            raise response.raise_for_status()
 
     def fetch_inbox(
         self,
         limit_date_lo: str = None,
-        limit_date_hi: str = None,  # pylint: disable=R0914,R0913
+        limit_date_hi: str = None,
         rcvd_since: str = None,
         confirmed_only: str = None,
         unconfirmed_only: str = None,
@@ -145,31 +152,33 @@ class eQSLClient:  # pylint: disable=invalid-name
         params = {k: v for k, v in params.items() if v is not None}
 
         with self.session as s:
-            r = s.get(
+            response = s.get(
                 self.base_url + "DownloadInBox.cfm", params=params, timeout=self.timeout
             )
-            if r.status_code == requests.codes.ok:
+            if response.status_code == requests.codes.ok:
                 adif_found_txt = "Your ADIF log file has been built"
                 adif_status = (
-                    r.text.index(adif_found_txt) if adif_found_txt in r.text else -1
+                    response.text.index(adif_found_txt)
+                    if adif_found_txt in response.text
+                    else -1
                 )
                 if adif_status < 0:
                     raise eQSLError("Failed to generate ADIF.")
-                adif_link_start_idx = r.text.index('<LI><A HREF="..') + 15
-                adif_link_end_idx = r.text.index('">.ADI file</A>')
+                adif_link_start_idx = response.text.index('<LI><A HREF="..') + 15
+                adif_link_end_idx = response.text.index('">.ADI file</A>')
                 adif_link = (
-                    self.base_url + r.text[adif_link_start_idx:adif_link_end_idx]
+                    self.base_url + response.text[adif_link_start_idx:adif_link_end_idx]
                 )
                 adif_response = requests.get(adif_link, timeout=self.timeout)
                 if adif_response.status_code == requests.codes.ok:
                     return Logbook(self.callsign, adif_response.text)
-                raise r.raise_for_status()
-            raise r.raise_for_status()
+                raise response.raise_for_status()
+            raise response.raise_for_status()
 
     def fetch_inbox_qsls(
         self,
         limit_date_lo: str = None,
-        limit_date_hi: str = None,  # pylint: disable = R0913
+        limit_date_hi: str = None,
         rcvd_since: str = None,
         archive: str = None,
         ham_only: str = None,
@@ -218,31 +227,137 @@ class eQSLClient:  # pylint: disable=invalid-name
             qspylib.logbook.Logbook: A logbook containing the user's QSOs.
         """
         with self.session as s:
-            r = s.get(self.base_url + "DownloadADIF.cfm", timeout=self.timeout)
-            if r.status_code == requests.codes.ok:
+            response = s.get(self.base_url + "DownloadADIF.cfm", timeout=self.timeout)
+            if response.status_code == requests.codes.ok:
                 adif_found_txt = "Your ADIF log file has been built"
                 adif_status = (
-                    r.text.index(adif_found_txt) if adif_found_txt in r.text else -1
+                    response.text.index(adif_found_txt)
+                    if adif_found_txt in response.text
+                    else -1
                 )
                 if adif_status < 0:
                     raise eQSLError("Failed to generate ADIF.")
-                adif_link_start_idx = r.text.index('<LI><A HREF="..') + 15
-                adif_link_end_idx = r.text.index('">.ADI file</A>')
+                adif_link_start_idx = response.text.index('<LI><A HREF="..') + 15
+                adif_link_end_idx = response.text.index('">.ADI file</A>')
                 adif_link = (
-                    self.base_url + r.text[adif_link_start_idx:adif_link_end_idx]
+                    self.base_url + response.text[adif_link_start_idx:adif_link_end_idx]
                 )
                 adif_response = requests.get(adif_link, timeout=self.timeout)
                 if adif_response.status_code == requests.codes.ok:
                     return Logbook(self.callsign, adif_response.text)
-                raise r.raise_for_status()
-            raise r.raise_for_status()
+                raise response.raise_for_status()
+            raise response.raise_for_status()
+
+    def _retrieve_graphic(
+        self,
+        callsign_from: str,
+        qso_year: str,
+        qso_month: str,
+        qso_day: str,
+        qso_hour: str,
+        qso_minute: str,
+        qso_band: str,
+        qso_mode: str,
+        timeout: int = 15,
+    ) -> BytesIO:
+        """Retrieve the graphic image for a QSO from eQSL. This is the raw\
+        interface, as provided by eQSL.cc, with string parameters.
+
+        Note:
+            It is recommended you use the `retrieve_graphic` method instead.
+
+        Args:
+            callsign_from (str): The callsign of the sender of the eQSL
+            qso_year (str): YYYY OR YY format date of the QSO
+            qso_month (str): MM format
+            qso_day (str): DD format
+            qso_hour (str): HH format (24-hour time)
+            qso_minute (str): MM format
+            qso_band (str): 20m, 80M, 70cm, etc. (case insensitive)
+            qso_mode (str): Must match exactly and should be an ADIF-compatible mode
+            timeout (int, optional): time to connection timeout. Defaults to 15.
+
+        Raises:
+            eQSLError: An error occurred interfacing with eQSL.
+            HTTPError: An error occurred while trying to make a connection.
+
+        Returns:
+            BytesIO: A BytesIO binary stream containing the image data. This\
+                can be further processed with PIL or other image libraries;\
+                for instance, using PIL, Image.open(return_val) will give a PIL Image.
+        """
+        params = {
+            "CallsignFrom": callsign_from,
+            "QSOYear": qso_year,
+            "QSOMonth": qso_month,
+            "QSODay": qso_day,
+            "QSOHour": qso_hour,
+            "QSOMinute": qso_minute,
+            "QSOBand": qso_band,
+            "QSOMode": qso_mode,
+        }
+        response = self.session.get(
+            self.base_url + "GeteQSL.cfm", params=params, timeout=timeout
+        )
+        if response.status_code == requests.codes.ok:
+            try:
+                url_beg_idx = response.text.index('<img src="') + 10
+                url_end_idx = response.text.index('" alt="')
+                img_url = "https://www.eQSL.cc" + response.text[url_beg_idx:url_end_idx]
+                img_response = self.session.get(img_url, stream=True, timeout=timeout)
+                return BytesIO(img_response.content)
+            except ValueError as exc:
+                raise eQSLError("Failed to retrieve graphic image") from exc
+        else:
+            raise response.raise_for_status()
+
+    def retrieve_graphic(
+        self,
+        callsign_from: str,
+        qso_datetime: datetime,
+        band: str,
+        mode: str,
+        timeout: int = 15,
+    ) -> BytesIO:
+        """Retrieve the graphic image for a QSO from eQSL. This is a simplified\
+        interface that uses a datetime object.
+
+        Args:
+            callsign_from (str): The callsign of the sender of the eQSL
+            qso_datetime (datetime): Datetime containing the Year, Month, Day,\
+                Hour, and Minute of the QSO.
+            band (str): 20m, 80M, 70cm, etc. (case insensitive)
+            mode (str): Must match exactly and should be an ADIF-compatible mode
+            timeout (int, optional): Seconds before query times out. Defaults to 15.
+
+        Raises:
+            eQSLError: An error occurred interfacing with eQSL.
+            HTTPError: An error occurred while trying to make a connection.
+
+        Returns:
+            BytesIO: A BytesIO binary stream containing the image data. This\
+                can be further processed with PIL or other image libraries;\
+                for instance, using PIL, Image.open(return_val) will give a PIL Image.
+        """
+        return self._retrieve_graphic(
+            callsign_from,
+            qso_datetime.year,
+            qso_datetime.month,
+            qso_datetime.day,
+            qso_datetime.hour,
+            qso_datetime.minute,
+            band,
+            mode,
+            timeout,
+        )
 
     # region Static Methods
+
     @staticmethod
     def verify_eqsl(
         callsign_from: str,
         callsign_to: str,
-        qso_band: str,  # pylint: disable=R0913
+        qso_band: str,
         qso_mode: str = None,
         qso_date: str = None,
         timeout: int = 15,
@@ -287,54 +402,13 @@ class eQSLClient:  # pylint: disable=invalid-name
             )
             if response.status_code == requests.codes.ok:
                 raw_result = response.text
-                # TO-DO: make this a case statement
+
                 if "Result - QSO on file" in raw_result:
                     return True, raw_result
                 if "Parameter missing" not in raw_result:
                     return False, raw_result
                 raise eQSLError(raw_result)
             raise response.raise_for_status()
-
-    @staticmethod
-    def retrieve_graphic(
-        username: str,
-        password: str,
-        callsign_from: str,
-        qso_year: str,
-        qso_month: str,
-        qso_day: str,
-        qso_hour: str,
-        qso_minute: str,
-        qso_band: str,
-        qso_mode: str,
-        timeout: int = 15,
-    ):
-        """Retrieve the graphic image for a QSO from eQSL.
-
-        Note:
-            Not yet implemented.
-
-        Args:
-            username (str): The callsign of the recipient of the eQSL
-            password (str): The password of the user's account
-            callsign_from (str): The callsign of the sender of the eQSL
-            qso_year (str): YYYY OR YY format date of the QSO
-            qso_month (str): MM format
-            qso_day (str): DD format
-            qso_hour (str): HH format (24-hour time)
-            qso_minute (str): MM format
-            qso_band (str): 20m, 80M, 70cm, etc. (case insensitive)
-            qso_mode (str): Must match exactly and should be an ADIF-compatible mode
-            timeout (int, optional): time to connection timeout. Defaults to 15.
-
-        Todo:
-            Implement this function.
-
-        Raises:
-            NotImplementedError: Not yet implemented.
-
-        """
-        raise NotImplementedError
 
     @staticmethod
     def get_ag_list(timeout: int = 15):
