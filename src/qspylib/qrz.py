@@ -10,6 +10,7 @@ from typing import Any
 from urllib.parse import urlparse, parse_qs
 import requests
 import xmltodict
+import adif_io
 from .logbook import Logbook
 from ._version import __version__
 
@@ -102,13 +103,10 @@ class QRZLogbookClient:
                 urlparse("ws://a.a/?" + html.unescape(response.text))[4],
                 strict_parsing=True,
             )
-            # check our key wasn't bad
             if response_dict.get("RESULT") == "OK":
                 return QRZLogbookClient.__stringify(self, response_dict["ADIF"])
             else:
-                raise QRZLogbookError(
-                    response_dict.get("REASON")
-                )
+                raise QRZLogbookError(response_dict.get("REASON"))
         else:
             raise response.raise_for_status()
 
@@ -141,13 +139,52 @@ class QRZLogbookClient:
                 urlparse("ws://a.a/?" + html.unescape(response.text))[4],
                 strict_parsing=True,
             )
-            # check our key wasn't bad
             if response_dict.get("RESULT") == "OK":
                 return QRZLogbookClient.__stringify(self, response_dict["ADIF"])
             else:
-                raise QRZLogbookError(
-                    response_dict.get("REASON")
-                )
+                raise QRZLogbookError(response_dict.get("REASON"))
+        else:
+            raise response.raise_for_status()
+
+    def insert_record(self, adif: adif_io.QSO, option: str = None) -> str:
+        """Insert records into the logbook corresponding to the Client's API Key.
+
+        Args:
+            adif (adif_io.QSO): adif_io.QSO object to insert into the logbook.
+            option (str, optional): REPLACE To automatically overwrite any existing\
+                QSOs. Defaults to None.
+
+        Raises:
+            QRZLogbookError: The logbook API returned an error, and the reason is included.
+            QRZLogbookError: An unknown condition was reached with the logbook API.
+            HTTPError: An error occurred trying to make a connection.
+
+        Returns:
+            str: The logid value of the record that was inserted or replaced.
+        """
+        data = {
+            "KEY": self.key,
+            "ACTION": "INSERT",
+            "ADIF": str(adif),
+            "OPTION": option,
+        }
+        response = requests.post(
+            self.base_url, data=data, headers=self.headers, timeout=self.timeout
+        )
+        if response.status_code == requests.codes.ok:
+            response_dict = parse_qs(
+                urlparse("ws://a.a/?" + html.unescape(response.text))[4],
+                strict_parsing=True,
+            )
+            match response_dict.get("RESULT"):
+                case "OK":
+                    return str(response_dict["LOGID"])
+                case "REPLACE":
+                    return "REPLACED; " + str(response_dict["LOGID"])
+                case "FAIL":
+                    raise QRZLogbookError(str(response_dict.get("REASON")))
+                case _:
+                    raise QRZLogbookError("Unknown error occurred.")
         else:
             raise response.raise_for_status()
 
@@ -184,9 +221,7 @@ class QRZLogbookClient:
             if response_dict.get("RESULT") == "OK":
                 return QRZLogbookClient.__stringify(self, response_dict["ADIF"])
             else:
-                raise QRZLogbookError(
-                    response_dict.get("REASON")
-                )
+                raise QRZLogbookError(response_dict.get("REASON"))
         else:
             raise response.raise_for_status()
 
