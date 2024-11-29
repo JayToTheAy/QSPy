@@ -1,6 +1,8 @@
 # QSPyLib
 ![Python Package Build Action Status](https://github.com/JayToTheAy/QSPy/actions/workflows/python-package.yml/badge.svg)
 ![Documentation Status](https://readthedocs.org/projects/qspylib/badge/?version=latest)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/qspylib)
+
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/qspylib)
 ![PyPI - Version](https://img.shields.io/pypi/v/qspylib)
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/qspylib)
