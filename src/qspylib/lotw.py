@@ -163,11 +163,13 @@ class LOTWClient:
 
         with self.session as s:
             response = s.get(self.base_url + log_url, params=params)
+            if response.status_code != requests.codes.ok:
+                raise response.raise_for_status()
             if "<eoh>" not in response.text:
                 raise RetrievalFailure
-            if response.status_code == requests.codes.ok:
-                return Logbook(self.username, response.text)
-            raise response.raise_for_status()
+
+            return Logbook(self.username, response.text)
+
 
     def fetch_qsls(
         self,
@@ -287,7 +289,6 @@ class LOTWClient:
                 qsorxsince = qsorxsince.strftime("%Y-%m-%d")
 
         return self.fetch_logbook(
-            self,
             1,
             "no",
             qso_qsorxsince=qsorxsince,
@@ -334,16 +335,19 @@ class LOTWClient:
 
         with self.session as s:
             response = s.get(self.base_url + dxcc_url, params=params)
-            if response.status_code == requests.codes.ok:
-                # lotw lies, and claims an <eoh> will be absent from bad
-                # outputs, but it's there, so we'll do something else.
-                if (
-                    "ARRL Logbook of the World DXCC QSL Card Report"
-                    not in response.text[:46]
-                ):
-                    raise RetrievalFailure(response.text)
-                return Logbook(self.username, response.text)
-            raise response.raise_for_status()
+            if response.status_code != requests.codes.ok:
+                raise response.raise_for_status()
+
+            # lotw lies, and claims an <eoh> will be absent from bad
+            # outputs, but it's there, so we'll do something else.
+            if (
+               "ARRL Logbook of the World DXCC QSL Card Report"
+                not in response.text[:46]
+            ):
+                raise RetrievalFailure(response.text)
+
+            return Logbook(self.username, response.text)
+
 
     # region Static Functions
     @staticmethod
@@ -383,9 +387,10 @@ class LOTWClient:
 
         with requests.Session() as s:
             response = s.get(url, timeout=timeout)
-            if response.status_code == requests.codes.ok:
-                return response.text
-            raise response.raise_for_status()
+            if response.status_code != requests.codes.ok:
+                raise response.raise_for_status()
+
+            return response.text
 
     @staticmethod
     def upload_logbook(file, timeout: int = 120):
@@ -413,22 +418,23 @@ class LOTWClient:
 
         with requests.Session() as s:
             response = s.post(upload_url, data, timeout=timeout)
-            if response.status_code == requests.codes.ok:
-                result = response.text
-                result_start_idx = result.index("<!-- .UPL. ")
-                result_end_idx = result[result_start_idx + 11 :].index(" -->")
-                upl_result = result[result_start_idx:result_end_idx]
-                upl_message = str(
-                    result[
-                        result.index("<!-- .UPLMESSAGE. ")
-                        + 18 : result[result_end_idx:].rindex(" -->")
-                    ]
-                )
-                if "rejected" in upl_result:
-                    raise UploadError(upl_message)
-                return upl_message
-            raise response.raise_for_status()
+            if response.status_code != requests.codes.ok:
+                raise response.raise_for_status()
 
+            result = response.text
+            result_start_idx = result.index("<!-- .UPL. ")
+            result_end_idx = result[result_start_idx + 11 :].index(" -->")
+            upl_result = result[result_start_idx:result_end_idx]
+            upl_message = str(
+                result[
+                    result.index("<!-- .UPLMESSAGE. ")
+                    + 18 : result[result_end_idx:].rindex(" -->")
+                ]
+            )
+            if "rejected" in upl_result:
+                raise UploadError(upl_message)
+
+            return upl_message
     # endregion
 
 
