@@ -431,11 +431,12 @@ class eQSLClient:  # pylint: disable=invalid-name
             response = s.get(
                 url, headers={"user-agent": "pyQSP/" + __version__}, timeout=timeout
             )
-            if response.status_code == requests.codes.ok:
-                result_list = []
-                result_list += response.text.split("\r\n")
-                return set(result_list[1:-1]), str(result_list[0])
-            raise response.raise_for_status()
+            if response.status_code != requests.codes.ok:
+                raise response.raise_for_status()
+
+            result_list = []
+            result_list += response.text.split("\r\n")
+            return set(result_list[1:-1]), str(result_list[0])
 
     @staticmethod
     def get_ag_list_dated(timeout: int = 15):
@@ -459,15 +460,16 @@ class eQSLClient:  # pylint: disable=invalid-name
             response = s.get(
                 url, headers={"user-agent": "pyQSP/" + __version__}, timeout=timeout
             )
-            if response.status_code == requests.codes.ok:
-                result_list = response.text.split("\r\n")
-                loc, header = result_list[1:-1], str(result_list[0])
-                dict_calls = {}
-                for pair in loc:
-                    call, date = pair.split(", ")
-                    dict_calls[call] = date
-                return dict_calls, header
-            raise response.raise_for_status()
+            if response.status_code != requests.codes.ok:
+                raise response.raise_for_status()
+
+            result_list = response.text.split("\r\n")
+            loc, header = result_list[1:-1], str(result_list[0])
+            dict_calls = {}
+            for pair in loc:
+                call, date = pair.split(", ")
+                dict_calls[call] = date
+            return dict_calls, header
 
     @staticmethod
     def get_full_member_list(timeout: int = 15):
@@ -489,14 +491,15 @@ class eQSLClient:  # pylint: disable=invalid-name
 
         with requests.Session() as s:
             response = s.get(url, timeout=timeout)
-            if response.status_code == requests.codes.ok:
-                result_list = response.text.split("\r\n")[1:-1]
-                dict_calls = {}
-                for row in result_list:
-                    data = row.split(",")
-                    dict_calls[data[0]] = data[1:]
-                return dict_calls
-            raise response.raise_for_status()
+            if response.status_code != requests.codes.ok:
+                raise response.raise_for_status()
+
+            result_list = response.text.split("\r\n")[1:-1]
+            dict_calls = {}
+            for row in result_list:
+                data = row.split(",")
+                dict_calls[data[0]] = data[1:]
+            return dict_calls
 
     @staticmethod
     def get_users_data(callsign: str):
