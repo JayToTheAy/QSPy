@@ -289,7 +289,6 @@ class LOTWClient:
                 qsorxsince = qsorxsince.strftime("%Y-%m-%d")
 
         return self.fetch_logbook(
-            self,
             1,
             "no",
             qso_qsorxsince=qsorxsince,
