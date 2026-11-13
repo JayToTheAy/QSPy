@@ -7,8 +7,7 @@
 import html
 from collections import OrderedDict
 from typing import Any
-from urllib.parse import urlparse, parse_qs
-from re import findall
+from re import findall, split
 import requests
 import xmltodict
 import adif_io
@@ -70,6 +69,15 @@ class QRZLogbookClient:
             "Connection": "keep-alive",
         }
 
+    def _parse_qrz_query_string(self, text:str) -> dict[str, str]:
+        result = {}
+        # Split on '&' only where a new KEY= begins; a bare '&' inside a value
+        # won't match, so it's safe either way.
+        for part in split(r"&(?=[A-Z_]+=)", text.strip()):
+            key, _, value = part.partition("=")
+            result[key] = html.unescape(value)
+        return result
+
     def fetch_logbook(self, option: str = None) -> Logbook:
         """Fetches the logbook corresponding to the Client's API Key.
 
@@ -102,10 +110,8 @@ class QRZLogbookClient:
         if response.status_code != requests.codes.ok:
             raise response.raise_for_status()
 
-        response_dict = parse_qs(
-            urlparse("ws://a.a/?" + html.unescape(response.text))[4],
-            strict_parsing=True,
-        )
+        response_dict = self._parse_qrz_query_string(response.text)
+        
         if response_dict.get("RESULT")[0] == "OK":
             return QRZLogbookClient.__stringify(self, response_dict["ADIF"][0])
         else:
@@ -138,10 +144,7 @@ class QRZLogbookClient:
         if response.status_code !=  requests.codes.ok:
             raise response.raise_for_status()
 
-        response_dict = parse_qs(
-            urlparse("ws://a.a/?" + html.unescape(response.text))[4],
-            strict_parsing=True,
-        )
+        response_dict = self._parse_qrz_query_string(response.text)
 
         match_str = response_dict.get("RESULT")[0]
 
@@ -193,10 +196,8 @@ class QRZLogbookClient:
         if response.status_code != requests.codes.ok:
             raise response.raise_for_status()
 
-        response_dict = parse_qs(
-            urlparse("ws://a.a/?" + html.unescape(response.text))[4],
-            strict_parsing=True,
-        )
+        response_dict = self._parse_qrz_query_string(response.text)
+
         match_str = response_dict.get("RESULT")[0]
 
         if match_str == "OK":
@@ -248,10 +249,8 @@ class QRZLogbookClient:
         if response.status_code != requests.codes.ok:
             raise response.raise_for_status()
 
-        response_dict = parse_qs(
-            urlparse("ws://a.a/?" + html.unescape(response.text))[4],
-            strict_parsing=True,
-        )
+        response_dict = self._parse_qrz_query_string(response.text)
+        
         if response_dict.get("RESULT")[0] == "OK":
             result = {}
             for kvp in response_dict.items():
