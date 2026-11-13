@@ -1,8 +1,8 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
-"""Functions and classes related to querying the QRZ APIs.
-"""
+"""Functions and classes related to querying the QRZ APIs."""
+
 # region Imports
 import html
 from collections import OrderedDict
@@ -13,7 +13,6 @@ import xmltodict
 import adif_io
 from .logbook import Logbook
 from ._version import __version__
-
 
 # constants
 MAX_NUM_RETRIES = 1
@@ -69,10 +68,20 @@ class QRZLogbookClient:
             "Connection": "keep-alive",
         }
 
-    def _parse_qrz_query_string(self, text:str) -> dict[str, str]:
+    def _parse_qrz_query_string(self, text: str) -> dict[str, str]:
+        """Parses a QRZ query string into a dict.
+
+        Args:
+            text (str): QRZ query string to parse.
+
+        Raises:
+            ValueError: An error occurred trying to parse the query string.
+
+        Returns:
+            dict[str, str]: A dict containing the parsed query string.
+        """
         result = {}
-        # Split on '&' only where a new KEY= begins; a bare '&' inside a value
-        # won't match, so it's safe either way.
+        # Split on '&' only where a new KEY= begins
         for part in split(r"&(?=[A-Z_]+=)", text.strip()):
             key, _, value = part.partition("=")
             result[key] = html.unescape(value)
@@ -111,7 +120,7 @@ class QRZLogbookClient:
             raise response.raise_for_status()
 
         response_dict = self._parse_qrz_query_string(response.text)
-        
+
         if response_dict.get("RESULT")[0] == "OK":
             return QRZLogbookClient.__stringify(self, response_dict["ADIF"][0])
         else:
@@ -141,7 +150,7 @@ class QRZLogbookClient:
         response = requests.post(
             self.base_url, data=data, headers=self.headers, timeout=self.timeout
         )
-        if response.status_code !=  requests.codes.ok:
+        if response.status_code != requests.codes.ok:
             raise response.raise_for_status()
 
         response_dict = self._parse_qrz_query_string(response.text)
@@ -164,9 +173,7 @@ class QRZLogbookClient:
         elif match_str == "FAIL":
             raise QRZLogbookError(response_dict.get("REASON")[0])
         else:
-            raise QRZLogbookError(
-                "An invalid state was reached with no known error."
-            )
+            raise QRZLogbookError("An invalid state was reached with no known error.")
 
     def insert_record(self, adif: adif_io.QSO, option: str = None) -> list:
         """Insert records into the logbook corresponding to the Client's API Key.
@@ -201,13 +208,9 @@ class QRZLogbookClient:
         match_str = response_dict.get("RESULT")[0]
 
         if match_str == "OK":
-            return QRZLogbookClient.convert_logids_to_list(
-                response_dict["LOGID"][0]
-            )
+            return QRZLogbookClient.convert_logids_to_list(response_dict["LOGID"][0])
         elif match_str == "REPLACE":
-            return QRZLogbookClient.convert_logids_to_list(
-                response_dict["LOGID"][0]
-            )
+            return QRZLogbookClient.convert_logids_to_list(response_dict["LOGID"][0])
         elif match_str == "FAIL":
             raise QRZLogbookError(str(response_dict.get("REASON")[0]))
         else:
@@ -250,7 +253,7 @@ class QRZLogbookClient:
             raise response.raise_for_status()
 
         response_dict = self._parse_qrz_query_string(response.text)
-        
+
         if response_dict.get("RESULT")[0] == "OK":
             result = {}
             for kvp in response_dict.items():
@@ -392,9 +395,11 @@ class QRZXMLClient:
 
         # if we didn't manage to return from a logged in session, raise an error
         raise QRZInvalidSessionError(
-            **{"message": parsed_response["ERROR"]}
-            if parsed_response.get("ERROR")
-            else {}
+            **(
+                {"message": parsed_response["ERROR"]}
+                if parsed_response.get("ERROR")
+                else {}
+            )
         )
 
     def lookup_dxcc(self, dxcc: str) -> OrderedDict[str, Any]:
@@ -433,9 +438,11 @@ class QRZXMLClient:
 
         # if we didn't manage to return from a logged in session, raise an error
         raise QRZInvalidSessionError(
-            **{"message": parsed_response["ERROR"]}
-            if parsed_response.get("ERROR")
-            else {}
+            **(
+                {"message": parsed_response["ERROR"]}
+                if parsed_response.get("ERROR")
+                else {}
+            )
         )
 
 
