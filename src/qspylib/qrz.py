@@ -117,8 +117,8 @@ class QRZLogbookClient:
         response = requests.post(
             self.base_url, data=data, headers=self.headers, timeout=self.timeout
         )
-        if response.status_code != requests.codes.ok:
-            raise response.raise_for_status()
+
+        response.raise_for_status()
 
         response_dict = self._parse_qrz_query_string(response.text)
 
@@ -151,8 +151,8 @@ class QRZLogbookClient:
         response = requests.post(
             self.base_url, data=data, headers=self.headers, timeout=self.timeout
         )
-        if response.status_code != requests.codes.ok:
-            raise response.raise_for_status()
+
+        response.raise_for_status()
 
         response_dict = self._parse_qrz_query_string(response.text)
 
@@ -201,8 +201,8 @@ class QRZLogbookClient:
         response = requests.post(
             self.base_url, data=data, headers=self.headers, timeout=self.timeout
         )
-        if response.status_code != requests.codes.ok:
-            raise response.raise_for_status()
+
+        response.raise_for_status()
 
         response_dict = self._parse_qrz_query_string(response.text)
 
@@ -250,8 +250,8 @@ class QRZLogbookClient:
         response = requests.post(
             self.base_url, data=data, headers=self.headers, timeout=self.timeout
         )
-        if response.status_code != requests.codes.ok:
-            raise response.raise_for_status()
+
+        response.raise_for_status()
 
         response_dict = self._parse_qrz_query_string(response.text)
 
@@ -386,8 +386,8 @@ class QRZXMLClient:
             response = requests.get(
                 self.base_url, params=params, headers=self.headers, timeout=self.timeout
             )
-            if response.status_code != requests.codes.ok:
-                raise response.raise_for_status()
+
+            response.raise_for_status()
 
             parsed_response = xmltodict.parse(response.text)
             if not parsed_response["QRZDatabase"]["Session"].get("Key"):
@@ -429,8 +429,8 @@ class QRZXMLClient:
             response = requests.get(
                 self.base_url, params=params, headers=self.headers, timeout=self.timeout
             )
-            if response.status_code != requests.codes.ok:
-                raise response.raise_for_status()
+
+            response.raise_for_status()
 
             parsed_response = xmltodict.parse(response.text)
             if not parsed_response["QRZDatabase"]["Session"].get("Key"):
