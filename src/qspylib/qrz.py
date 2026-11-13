@@ -346,6 +346,13 @@ class QRZXMLClient:
         response = requests.get(
             self.base_url, params=params, headers=self.headers, timeout=self.timeout
         )
+
+        # handle failure to login
+        if response.status_code == requests.codes.unauthorized:
+            raise QRZInvalidSessionError(
+                "Invalid API key (401 Unauthorized)"
+            )
+        
         xml_dict = xmltodict.parse(response.text)
         key = xml_dict["QRZDatabase"]["Session"].get("Key")
         if not key:
@@ -360,6 +367,13 @@ class QRZXMLClient:
         response = requests.get(
             self.base_url, params=params, headers=self.headers, timeout=self.timeout
         )
+
+        # handle failure to login
+        if response.status_code == requests.codes.unauthorized:
+                    raise QRZInvalidSessionError(
+                        "Invalid API key (401 Unauthorized)"
+                    )
+
         if not xmltodict.parse(response.text)["QRZDatabase"]["Session"].get("Key"):
             raise QRZInvalidSessionError()
 
