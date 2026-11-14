@@ -13,7 +13,6 @@ from qspylib import eqsl
 from qspylib import lotw
 from qspylib import qrz
 
-
 #################
 # logbook tests #
 #################
@@ -211,7 +210,7 @@ def test_get_user_data():
 
 def test_qrz_xml_with_invalid_login():
     """Test a bad login to the QRZ XML API."""
-    with pytest.raises(HTTPError):
+    with pytest.raises(qrz.QRZInvalidSessionError):
         qrz.QRZXMLClient("badusername", "badpassword")
 
 

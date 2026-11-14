@@ -318,6 +318,7 @@ class QRZXMLClient:
                 Defaults to 15.
 
         Raises:
+            HTTPError: An error occurred trying to make a connection.
             QRZInvalidSessionError: An error occurred trying to instantiate a session.
         """
         self.username = username
@@ -347,6 +348,8 @@ class QRZXMLClient:
         response = requests.get(
             self.base_url, params=params, headers=self.headers, timeout=self.timeout
         )
+
+        response.raise_for_status()
         
         xml_dict = xmltodict.parse(response.text)
         key = xml_dict["QRZDatabase"]["Session"].get("Key")
