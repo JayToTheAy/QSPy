@@ -1,20 +1,18 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
-"""Functions and classes related to querying the QRZ APIs.
-"""
+"""Functions and classes related to querying the QRZ APIs."""
+
 # region Imports
 import html
 from collections import OrderedDict
 from typing import Any
-from urllib.parse import urlparse, parse_qs
-from re import findall
+from re import findall, split
 import requests
 import xmltodict
 import adif_io
 from .logbook import Logbook
 from ._version import __version__
-
 
 # constants
 MAX_NUM_RETRIES = 1
@@ -70,6 +68,26 @@ class QRZLogbookClient:
             "Connection": "keep-alive",
         }
 
+
+    def _parse_qrz_query_string(self, text: str) -> dict[str, str]:
+        """Parses a QRZ query string into a dict.
+
+        Args:
+            text (str): QRZ query string to parse.
+
+        Raises:
+            ValueError: An error occurred trying to parse the query string.
+
+        Returns:
+            dict[str, str]: A dict containing the parsed query string.
+        """
+        result = {}
+        # Split on '&' only where a new KEY= begins
+        for part in split(r"&(?=[A-Z_]+=)", text.strip()):
+            key, _, value = part.partition("=")
+            result[key] = html.unescape(value)
+        return result
+
     def fetch_logbook(self, option: str = None) -> Logbook:
         """Fetches the logbook corresponding to the Client's API Key.
 
@@ -99,13 +117,11 @@ class QRZLogbookClient:
         response = requests.post(
             self.base_url, data=data, headers=self.headers, timeout=self.timeout
         )
-        if response.status_code != requests.codes.ok:
-            raise response.raise_for_status()
 
-        response_dict = parse_qs(
-            urlparse("ws://a.a/?" + html.unescape(response.text))[4],
-            strict_parsing=True,
-        )
+        response.raise_for_status()
+
+        response_dict = self._parse_qrz_query_string(response.text)
+
         if response_dict.get("RESULT")[0] == "OK":
             return QRZLogbookClient.__stringify(self, response_dict["ADIF"][0])
         else:
@@ -135,13 +151,10 @@ class QRZLogbookClient:
         response = requests.post(
             self.base_url, data=data, headers=self.headers, timeout=self.timeout
         )
-        if response.status_code !=  requests.codes.ok:
-            raise response.raise_for_status()
 
-        response_dict = parse_qs(
-            urlparse("ws://a.a/?" + html.unescape(response.text))[4],
-            strict_parsing=True,
-        )
+        response.raise_for_status()
+
+        response_dict = self._parse_qrz_query_string(response.text)
 
         match_str = response_dict.get("RESULT")[0]
 
@@ -161,9 +174,7 @@ class QRZLogbookClient:
         elif match_str == "FAIL":
             raise QRZLogbookError(response_dict.get("REASON")[0])
         else:
-            raise QRZLogbookError(
-                "An invalid state was reached with no known error."
-            )
+            raise QRZLogbookError("An invalid state was reached with no known error.")
 
     def insert_record(self, adif: adif_io.QSO, option: str = None) -> list:
         """Insert records into the logbook corresponding to the Client's API Key.
@@ -190,23 +201,17 @@ class QRZLogbookClient:
         response = requests.post(
             self.base_url, data=data, headers=self.headers, timeout=self.timeout
         )
-        if response.status_code != requests.codes.ok:
-            raise response.raise_for_status()
 
-        response_dict = parse_qs(
-            urlparse("ws://a.a/?" + html.unescape(response.text))[4],
-            strict_parsing=True,
-        )
+        response.raise_for_status()
+
+        response_dict = self._parse_qrz_query_string(response.text)
+
         match_str = response_dict.get("RESULT")[0]
 
         if match_str == "OK":
-            return QRZLogbookClient.convert_logids_to_list(
-                response_dict["LOGID"][0]
-            )
+            return QRZLogbookClient.convert_logids_to_list(response_dict["LOGID"][0])
         elif match_str == "REPLACE":
-            return QRZLogbookClient.convert_logids_to_list(
-                response_dict["LOGID"][0]
-            )
+            return QRZLogbookClient.convert_logids_to_list(response_dict["LOGID"][0])
         elif match_str == "FAIL":
             raise QRZLogbookError(str(response_dict.get("REASON")[0]))
         else:
@@ -245,13 +250,11 @@ class QRZLogbookClient:
         response = requests.post(
             self.base_url, data=data, headers=self.headers, timeout=self.timeout
         )
-        if response.status_code != requests.codes.ok:
-            raise response.raise_for_status()
 
-        response_dict = parse_qs(
-            urlparse("ws://a.a/?" + html.unescape(response.text))[4],
-            strict_parsing=True,
-        )
+        response.raise_for_status()
+
+        response_dict = self._parse_qrz_query_string(response.text)
+
         if response_dict.get("RESULT")[0] == "OK":
             result = {}
             for kvp in response_dict.items():
@@ -315,6 +318,7 @@ class QRZXMLClient:
                 Defaults to 15.
 
         Raises:
+            HTTPError: An error occurred trying to make a connection.
             QRZInvalidSessionError: An error occurred trying to instantiate a session.
         """
         self.username = username
@@ -344,6 +348,9 @@ class QRZXMLClient:
         response = requests.get(
             self.base_url, params=params, headers=self.headers, timeout=self.timeout
         )
+
+        response.raise_for_status()
+        
         xml_dict = xmltodict.parse(response.text)
         key = xml_dict["QRZDatabase"]["Session"].get("Key")
         if not key:
@@ -358,6 +365,7 @@ class QRZXMLClient:
         response = requests.get(
             self.base_url, params=params, headers=self.headers, timeout=self.timeout
         )
+
         if not xmltodict.parse(response.text)["QRZDatabase"]["Session"].get("Key"):
             raise QRZInvalidSessionError()
 
@@ -381,8 +389,8 @@ class QRZXMLClient:
             response = requests.get(
                 self.base_url, params=params, headers=self.headers, timeout=self.timeout
             )
-            if response.status_code != requests.codes.ok:
-                raise response.raise_for_status()
+
+            response.raise_for_status()
 
             parsed_response = xmltodict.parse(response.text)
             if not parsed_response["QRZDatabase"]["Session"].get("Key"):
@@ -393,9 +401,11 @@ class QRZXMLClient:
 
         # if we didn't manage to return from a logged in session, raise an error
         raise QRZInvalidSessionError(
-            **{"message": parsed_response["ERROR"]}
-            if parsed_response.get("ERROR")
-            else {}
+            **(
+                {"message": parsed_response["ERROR"]}
+                if parsed_response.get("ERROR")
+                else {}
+            )
         )
 
     def lookup_dxcc(self, dxcc: str) -> OrderedDict[str, Any]:
@@ -422,8 +432,8 @@ class QRZXMLClient:
             response = requests.get(
                 self.base_url, params=params, headers=self.headers, timeout=self.timeout
             )
-            if response.status_code != requests.codes.ok:
-                raise response.raise_for_status()
+
+            response.raise_for_status()
 
             parsed_response = xmltodict.parse(response.text)
             if not parsed_response["QRZDatabase"]["Session"].get("Key"):
@@ -434,9 +444,11 @@ class QRZXMLClient:
 
         # if we didn't manage to return from a logged in session, raise an error
         raise QRZInvalidSessionError(
-            **{"message": parsed_response["ERROR"]}
-            if parsed_response.get("ERROR")
-            else {}
+            **(
+                {"message": parsed_response["ERROR"]}
+                if parsed_response.get("ERROR")
+                else {}
+            )
         )
 
 

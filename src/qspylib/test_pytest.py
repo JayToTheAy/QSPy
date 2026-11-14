@@ -6,12 +6,12 @@ called; these are automatically ran by PyTest when pushes are made to the repo,
 or when the user runs `pytest` in the root directory of the project.
 """
 import adif_io
+from requests.exceptions import HTTPError
 import pytest
 import qspylib.logbook
 from qspylib import eqsl
 from qspylib import lotw
 from qspylib import qrz
-
 
 #################
 # logbook tests #
@@ -216,6 +216,6 @@ def test_qrz_xml_with_invalid_login():
 
 def test_qrz_logbook_with_invalid_key():
     """Test a bad login to the QRZ Logbook API."""
-    with pytest.raises(qrz.QRZLogbookError):
+    with pytest.raises(HTTPError):
         qrz_logbook_obj = qrz.QRZLogbookClient("badkeythatisnotreal")
         qrz_logbook_obj.fetch_logbook()
